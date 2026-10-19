@@ -40,7 +40,7 @@ export function Workspace({ view }: { view: string }) {
   const mapView = ['peta', 'kerawanan', 'analisis'].includes(view);
   const [dark, setDark] = useState(false), [settingsOpen, setSettingsOpen] = useState(false);
   const [search, setSearch] = useState(''), [query, setQuery] = useState(''), [province, setProvince] = useState(''), [from, setFrom] = useState(''), [to, setTo] = useState(''), [status, setStatus] = useState('');
-  const [bbox, setBbox] = useState('94,-12,142,7'), [selected, setSelected] = useState<Incident | null>(null), [point, setPoint] = useState<{ lng: number; lat: number } | null>(null), [target, setTarget] = useState<MapTarget | null>(null);
+  const [selected, setSelected] = useState<Incident | null>(null), [point, setPoint] = useState<{ lng: number; lat: number } | null>(null), [target, setTarget] = useState<MapTarget | null>(null);
   const [showIncidents, setShowIncidents] = useState(true), [showBoundaries, setShowBoundaries] = useState(true), [showSusceptibility, setShowSusceptibility] = useState(true), [opacity, setOpacity] = useState(0.85), [basemap, setBasemap] = useState('streets'), [horizon, setHorizon] = useState(24), [searchMessage, setSearchMessage] = useState(''), [offset, setOffset] = useState(0);
   const [linkedIncident, setLinkedIncident] = useState('');
   const [linkedPlaceId, setLinkedPlaceId] = useState('');
@@ -95,7 +95,7 @@ export function Workspace({ view }: { view: string }) {
   const weatherRegion = regions.data?.data.find(region => provinceLabel(region.name) === province);
   if (weatherRegion) weatherParameters.set('province', weatherRegion.name);
   const weatherFilters = weatherParameters.toString();
-  const incidents = useQuery({ queryKey: ['incidents', filters, bbox], queryFn: () => get<Incident[]>(`incidents?${filters}&bbox=${bbox}&limit=2000`), enabled: mapView && !invalidDates });
+  const incidents = useQuery({ queryKey: ['incidents', filters], queryFn: () => get<Incident[]>(`incidents?${filters}&limit=3500`), staleTime: 300000, enabled: mapView && !invalidDates });
   const stats = useQuery({ queryKey: ['analytics', filters], queryFn: () => get<Analytics>('analytics?' + filters), enabled: (mapView || view === 'kejadian' || isHome) && !invalidDates });
   const incidentList = useQuery({ queryKey: ['incident-list', filters, offset], queryFn: () => get<Incident[]>(`incidents?${filters}&limit=25&offset=${offset}`), enabled: view === 'kejadian' && !invalidDates });
   const latest = useQuery({ queryKey: ['latest-incidents'], queryFn: () => get<Incident[]>('incidents?limit=3'), enabled: isHome });
@@ -108,7 +108,7 @@ export function Workspace({ view }: { view: string }) {
   const ai = useQuery({ queryKey: ['ai'], queryFn: () => get<{ status: string; message: string }>('ai/status'), enabled: view === 'prediksi-ai' });
   const linked = useQuery({ queryKey: ['linked-incident', linkedIncident], queryFn: () => get<Incident>('incidents/' + encodeURIComponent(linkedIncident)), enabled: !!linkedIncident && mapView });
   const linkedPlace = useQuery({ queryKey: ['place', linkedPlaceId], queryFn: () => get<Place[]>('places?id=' + encodeURIComponent(linkedPlaceId)), enabled: !!linkedPlaceId && mapView });
-  const onViewport = useCallback((value: string) => setBbox(value), []);
+  const onViewport = useCallback(() => {}, []);
   const onSelect = useCallback((value: { lng: number; lat: number }, incident?: Incident) => { setSelectedPlace(null); setTarget(null); setPoint(value); setSelected(incident || null); }, []);
 
   function selectIncident(incident: Incident) {
