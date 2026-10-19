@@ -1,0 +1,30 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "app": {
+      "root": ".",
+      "framework": "nextjs",
+      "bindings": [
+        {
+          "type": "service",
+          "service": "ai",
+          "format": "url",
+          "env": "AI_SERVICE_URL"
+        }
+      ]
+    },
+    "ai": {
+      "root": "ai",
+      "framework": "fastapi",
+      "entrypoint": "inference/app.py"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": {
+        "service": "app"
+      }
+    }
+  ]
+}

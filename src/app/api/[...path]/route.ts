@@ -31,7 +31,20 @@ export async function GET(request:NextRequest,ctx:Context) {
  const parsed=filterSchema.safeParse(Object.fromEntries(request.nextUrl.searchParams));
  if(!parsed.success) return NextResponse.json({error:'invalid_request',message:'Parameter tidak valid.',issues:parsed.error.issues},{status:400});
  const f=parsed.data;
-  if(path==='ai/status'||path==='ai/metadata') return result(unavailableModel);
+  if(path==='ai/status'||path==='ai/metadata') {
+   if(process.env.AI_SERVICE_URL) {
+    try {
+     const ep=path==='ai/status'?'models/status':'models/metadata';
+     const target=new URL(ep,process.env.AI_SERVICE_URL.endsWith('/')?process.env.AI_SERVICE_URL:process.env.AI_SERVICE_URL+'/');
+     const res=await fetch(target,{signal:AbortSignal.timeout(3000)});
+     if(res.ok) {
+      const data=await res.json();
+      return result(data);
+     }
+    } catch {}
+   }
+   return result(unavailableModel);
+  }
   if(path==='places') {
    const id=request.nextUrl.searchParams.get('id');
    if(id&&!/^[a-zA-Z0-9:._-]{1,100}$/.test(id))return result(null,{message:'Identitas wilayah tidak valid.'},400);
@@ -96,6 +109,18 @@ export async function POST(request:NextRequest,ctx:Context) {
  let body;try{if(Number(request.headers.get('content-length')||0)>10000) return result(null,{},413);body=await request.json();}catch{return NextResponse.json({error:'invalid_json'},{status:400});}
  const parsed=predictionSchema.safeParse(body);
  if(!parsed.success) return NextResponse.json({error:'invalid_request',issues:parsed.error.issues},{status:400});
- // Never forward to an unapproved artifact. Activation requires a governance integration.
+ if(process.env.AI_SERVICE_URL) {
+  try {
+   const target=new URL('predict',process.env.AI_SERVICE_URL.endsWith('/')?process.env.AI_SERVICE_URL:process.env.AI_SERVICE_URL+'/');
+   const res=await fetch(target,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(parsed.data),
+    signal:AbortSignal.timeout(5000),
+   });
+   const data=await res.json();
+   return NextResponse.json(data,{status:res.status});
+  } catch {}
+ }
  return NextResponse.json({...unavailableModel,issued_at:null,predicted_value:null,geographic_unit:parsed.data.geographic_unit,horizon_hours:parsed.data.horizon_hours},{status:503});
 }
