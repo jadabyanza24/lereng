@@ -1,0 +1,394 @@
+[
+  {
+    "label": "home",
+    "name": "desktop",
+    "errors": [],
+    "layout": {
+      "scrollWidth": 1440,
+      "width": 1440,
+      "height": 3436
+    },
+    "map": {
+      "x": 721.0625,
+      "y": 220,
+      "width": 618.9375,
+      "height": 420
+    }
+  },
+  {
+    "label": "map",
+    "name": "desktop",
+    "errors": [],
+    "layout": {
+      "scrollWidth": 1440,
+      "width": 1440,
+      "height": 1672
+    },
+    "map": {
+      "x": 0,
+      "y": 80,
+      "width": 1440,
+      "height": 970
+    }
+  },
+  {
+    "label": "incidents",
+    "name": "desktop",
+    "errors": [],
+    "layout": {
+      "scrollWidth": 1440,
+      "width": 1440,
+      "height": 5344
+    }
+  },
+  {
+    "label": "ai",
+    "name": "desktop",
+    "errors": [],
+    "layout": {
+      "scrollWidth": 1440,
+      "width": 1440,
+      "height": 1789
+    },
+    "availability": {
+      "x": 160,
+      "y": 360.03125,
+      "width": 1120,
+      "height": 55.09375
+    }
+  },
+  {
+    "label": "about",
+    "name": "desktop",
+    "errors": [],
+    "layout": {
+      "scrollWidth": 1440,
+      "width": 1440,
+      "height": 2930
+    }
+  },
+  {
+    "label": "weather",
+    "name": "desktop",
+    "errors": [],
+    "layout": {
+      "scrollWidth": 1440,
+      "width": 1440,
+      "height": 7660
+    }
+  },
+  {
+    "label": "sources",
+    "name": "desktop",
+    "errors": [],
+    "layout": {
+      "scrollWidth": 1440,
+      "width": 1440,
+      "height": 3539
+    }
+  },
+  {
+    "label": "settings",
+    "name": "desktop",
+    "errors": [],
+    "layout": {
+      "scrollWidth": 1440,
+      "width": 1440,
+      "height": 1192
+    }
+  },
+  {
+    "label": "home",
+    "name": "mobile",
+    "errors": [],
+    "layout": {
+      "scrollWidth": 390,
+      "width": 390,
+      "height": 5604
+    },
+    "map": {
+      "x": 20,
+      "y": 745.03125,
+      "width": 350,
+      "height": 320
+    }
+  },
+  {
+    "label": "map",
+    "name": "mobile",
+    "errors": [],
+    "layout": {
+      "scrollWidth": 390,
+      "width": 390,
+      "height": 1604
+    },
+    "map": {
+      "x": 0,
+      "y": 72,
+      "width": 390,
+      "height": 772
+    }
+  },
+  {
+    "label": "incidents",
+    "name": "mobile",
+    "errors": [],
+    "layout": {
+      "scrollWidth": 390,
+      "width": 390,
+      "height": 9780
+    }
+  },
+  {
+    "label": "ai",
+    "name": "mobile",
+    "errors": [],
+    "layout": {
+      "scrollWidth": 390,
+      "width": 390,
+      "height": 2429
+    },
+    "availability": {
+      "x": 20,
+      "y": 398.3125,
+      "width": 350,
+      "height": 78.1875
+    }
+  },
+  {
+    "label": "about",
+    "name": "mobile",
+    "errors": [],
+    "layout": {
+      "scrollWidth": 390,
+      "width": 390,
+      "height": 4139
+    }
+  },
+  {
+    "label": "weather",
+    "name": "mobile",
+    "errors": [],
+    "layout": {
+      "scrollWidth": 390,
+      "width": 390,
+      "height": 14210
+    }
+  },
+  {
+    "label": "sources",
+    "name": "mobile",
+    "errors": [],
+    "layout": {
+      "scrollWidth": 390,
+      "width": 390,
+      "height": 5664
+    }
+  },
+  {
+    "label": "settings",
+    "name": "mobile",
+    "errors": [],
+    "layout": {
+      "scrollWidth": 390,
+      "width": 390,
+      "height": 1496
+    }
+  },
+  {
+    "label": "home",
+    "name": "tablet",
+    "errors": [],
+    "layout": {
+      "scrollWidth": 768,
+      "width": 768,
+      "height": 4522
+    },
+    "map": {
+      "x": 32,
+      "y": 666.640625,
+      "width": 704,
+      "height": 350
+    }
+  },
+  {
+    "label": "map",
+    "name": "tablet",
+    "errors": [],
+    "layout": {
+      "scrollWidth": 768,
+      "width": 768,
+      "height": 1650
+    },
+    "map": {
+      "x": 0,
+      "y": 72,
+      "width": 768,
+      "height": 928
+    }
+  },
+  {
+    "label": "incidents",
+    "name": "tablet",
+    "errors": [],
+    "layout": {
+      "scrollWidth": 768,
+      "width": 768,
+      "height": 5491
+    }
+  },
+  {
+    "label": "ai",
+    "name": "tablet",
+    "errors": [],
+    "layout": {
+      "scrollWidth": 768,
+      "width": 768,
+      "height": 1885
+    },
+    "availability": {
+      "x": 28,
+      "y": 303.75,
+      "width": 712,
+      "height": 55.09375
+    }
+  },
+  {
+    "label": "about",
+    "name": "tablet",
+    "errors": [],
+    "layout": {
+      "scrollWidth": 768,
+      "width": 768,
+      "height": 3209
+    }
+  },
+  {
+    "label": "weather",
+    "name": "tablet",
+    "errors": [],
+    "layout": {
+      "scrollWidth": 768,
+      "width": 768,
+      "height": 8524
+    }
+  },
+  {
+    "label": "sources",
+    "name": "tablet",
+    "errors": [],
+    "layout": {
+      "scrollWidth": 768,
+      "width": 768,
+      "height": 4647
+    }
+  },
+  {
+    "label": "settings",
+    "name": "tablet",
+    "errors": [],
+    "layout": {
+      "scrollWidth": 768,
+      "width": 768,
+      "height": 1156
+    }
+  },
+  {
+    "label": "home",
+    "name": "dark",
+    "errors": [],
+    "layout": {
+      "scrollWidth": 1440,
+      "width": 1440,
+      "height": 3436
+    },
+    "map": {
+      "x": 721.0625,
+      "y": 220,
+      "width": 618.9375,
+      "height": 420
+    }
+  },
+  {
+    "label": "map",
+    "name": "dark",
+    "errors": [],
+    "layout": {
+      "scrollWidth": 1440,
+      "width": 1440,
+      "height": 1672
+    },
+    "map": {
+      "x": 0,
+      "y": 80,
+      "width": 1440,
+      "height": 970
+    }
+  },
+  {
+    "label": "incidents",
+    "name": "dark",
+    "errors": [],
+    "layout": {
+      "scrollWidth": 1440,
+      "width": 1440,
+      "height": 5344
+    }
+  },
+  {
+    "label": "ai",
+    "name": "dark",
+    "errors": [],
+    "layout": {
+      "scrollWidth": 1440,
+      "width": 1440,
+      "height": 1789
+    },
+    "availability": {
+      "x": 160,
+      "y": 360.03125,
+      "width": 1120,
+      "height": 55.09375
+    }
+  },
+  {
+    "label": "about",
+    "name": "dark",
+    "errors": [],
+    "layout": {
+      "scrollWidth": 1440,
+      "width": 1440,
+      "height": 2930
+    }
+  },
+  {
+    "label": "weather",
+    "name": "dark",
+    "errors": [],
+    "layout": {
+      "scrollWidth": 1440,
+      "width": 1440,
+      "height": 7660
+    }
+  },
+  {
+    "label": "sources",
+    "name": "dark",
+    "errors": [],
+    "layout": {
+      "scrollWidth": 1440,
+      "width": 1440,
+      "height": 3539
+    }
+  },
+  {
+    "label": "settings",
+    "name": "dark",
+    "errors": [],
+    "layout": {
+      "scrollWidth": 1440,
+      "width": 1440,
+      "height": 1192
+    }
+  }
+]

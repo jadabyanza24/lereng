@@ -1,0 +1,42 @@
+services:
+  db:
+    image: postgis/postgis:17-3.5
+    environment:
+      POSTGRES_DB: lereng
+      POSTGRES_USER: lereng
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-lereng_local}
+    ports: ["127.0.0.1:5432:5432"]
+    volumes: ["postgres:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lereng -d lereng"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  migrate:
+    build: {context: ., target: build}
+    environment:
+      DATABASE_URL: postgres://lereng:${POSTGRES_PASSWORD:-lereng_local}@db:5432/lereng
+    command: ["npm", "run", "db:migrate"]
+    depends_on: {db: {condition: service_healthy}}
+  web:
+    build: .
+    environment:
+      DATABASE_URL: postgres://lereng:${POSTGRES_PASSWORD:-lereng_local}@db:5432/lereng
+      AI_SERVICE_URL: http://ai:8000
+    ports: ["127.0.0.1:3000:3000"]
+    volumes: ["geodata:/app/public/geodata"]
+    depends_on: {migrate: {condition: service_completed_successfully}}
+  worker:
+    build: {context: ., target: build}
+    environment:
+      DATABASE_URL: postgres://lereng:${POSTGRES_PASSWORD:-lereng_local}@db:5432/lereng
+      BMKG_ADM4: ${BMKG_ADM4:-31.71.03.1001}
+    command: ["npx", "tsx", "scripts/schedule.ts"]
+    volumes: ["geodata:/app/public/geodata"]
+    depends_on: {migrate: {condition: service_completed_successfully}}
+  ai:
+    build: {context: ., dockerfile: ai/Dockerfile}
+    ports: ["127.0.0.1:8000:8000"]
+volumes:
+  postgres:
+  geodata:

@@ -1,0 +1,116 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-19T10:56:28Z",
+  "title": "Design System: LERENG",
+  "extensions": {
+    "colorMeta": {
+      "background": {"role":"neutral","displayName":"Kertas hangat","tonalRamp":["oklch(15% 0.0054 117.92)","oklch(26.43% 0.0054 117.92)","oklch(37.86% 0.0054 117.92)","oklch(49.29% 0.0054 117.92)","oklch(60.71% 0.0054 117.92)","oklch(72.14% 0.0054 117.92)","oklch(83.57% 0.0054 117.92)","oklch(95% 0.0054 117.92)"]},
+      "surface": {"role":"neutral","displayName":"Permukaan terang","tonalRamp":["oklch(15% 0 0)","oklch(26.43% 0 0)","oklch(37.86% 0 0)","oklch(49.29% 0 0)","oklch(60.71% 0 0)","oklch(72.14% 0 0)","oklch(83.57% 0 0)","oklch(95% 0 0)"]},
+      "ink": {"role":"neutral","displayName":"Tinta hutan","tonalRamp":["oklch(15% 0.0362 163.68)","oklch(26.43% 0.0362 163.68)","oklch(37.86% 0.0362 163.68)","oklch(49.29% 0.0362 163.68)","oklch(60.71% 0.0362 163.68)","oklch(72.14% 0.0362 163.68)","oklch(83.57% 0.0362 163.68)","oklch(95% 0.0362 163.68)"]},
+      "muted": {"role":"neutral","displayName":"Teks pendamping","tonalRamp":["oklch(15% 0.0233 159.07)","oklch(26.43% 0.0233 159.07)","oklch(37.86% 0.0233 159.07)","oklch(49.29% 0.0233 159.07)","oklch(60.71% 0.0233 159.07)","oklch(72.14% 0.0233 159.07)","oklch(83.57% 0.0233 159.07)","oklch(95% 0.0233 159.07)"]},
+      "line": {"role":"neutral","displayName":"Garis pembagi","tonalRamp":["oklch(15% 0.0142 138.71)","oklch(26.43% 0.0142 138.71)","oklch(37.86% 0.0142 138.71)","oklch(49.29% 0.0142 138.71)","oklch(60.71% 0.0142 138.71)","oklch(72.14% 0.0142 138.71)","oklch(83.57% 0.0142 138.71)","oklch(95% 0.0142 138.71)"]},
+      "line-control": {"role":"neutral","displayName":"Batas kontrol","tonalRamp":["oklch(15% 0.0263 154.83)","oklch(26.43% 0.0263 154.83)","oklch(37.86% 0.0263 154.83)","oklch(49.29% 0.0263 154.83)","oklch(60.71% 0.0263 154.83)","oklch(72.14% 0.0263 154.83)","oklch(83.57% 0.0263 154.83)","oklch(95% 0.0263 154.83)"]},
+      "accent": {"role":"primary","displayName":"Hijau hutan","tonalRamp":["oklch(15% 0.0774 162)","oklch(26.43% 0.0774 162)","oklch(37.86% 0.0774 162)","oklch(49.29% 0.0774 162)","oklch(60.71% 0.0774 162)","oklch(72.14% 0.0774 162)","oklch(83.57% 0.0774 162)","oklch(95% 0.0774 162)"]},
+      "accent-soft": {"role":"primary","displayName":"Hijau panduan","tonalRamp":["oklch(15% 0.0152 136.08)","oklch(26.43% 0.0152 136.08)","oklch(37.86% 0.0152 136.08)","oklch(49.29% 0.0152 136.08)","oklch(60.71% 0.0152 136.08)","oklch(72.14% 0.0152 136.08)","oklch(83.57% 0.0152 136.08)","oklch(95% 0.0152 136.08)"]},
+      "orange": {"role":"secondary","displayName":"Oranye laporan","tonalRamp":["oklch(15% 0.1292 42.72)","oklch(26.43% 0.1292 42.72)","oklch(37.86% 0.1292 42.72)","oklch(49.29% 0.1292 42.72)","oklch(60.71% 0.1292 42.72)","oklch(72.14% 0.1292 42.72)","oklch(83.57% 0.1292 42.72)","oklch(95% 0.1292 42.72)"]},
+      "orange-soft": {"role":"secondary","displayName":"Bidang laporan","tonalRamp":["oklch(15% 0.0203 58.07)","oklch(26.43% 0.0203 58.07)","oklch(37.86% 0.0203 58.07)","oklch(49.29% 0.0203 58.07)","oklch(60.71% 0.0203 58.07)","oklch(72.14% 0.0203 58.07)","oklch(83.57% 0.0203 58.07)","oklch(95% 0.0203 58.07)"]},
+      "warm": {"role":"neutral","displayName":"Bidang ketersediaan","tonalRamp":["oklch(15% 0.0120 111.76)","oklch(26.43% 0.0120 111.76)","oklch(37.86% 0.0120 111.76)","oklch(49.29% 0.0120 111.76)","oklch(60.71% 0.0120 111.76)","oklch(72.14% 0.0120 111.76)","oklch(83.57% 0.0120 111.76)","oklch(95% 0.0120 111.76)"]},
+      "report-point": {"role":"secondary","displayName":"Titik riwayat","tonalRamp":["oklch(15% 0.1483 41.63)","oklch(26.43% 0.1483 41.63)","oklch(37.86% 0.1483 41.63)","oklch(49.29% 0.1483 41.63)","oklch(60.71% 0.1483 41.63)","oklch(72.14% 0.1483 41.63)","oklch(83.57% 0.1483 41.63)","oklch(95% 0.1483 41.63)"]},
+      "dark-background": {"role":"neutral","displayName":"Latar gelap","tonalRamp":["oklch(15% 0.0256 165.18)","oklch(26.43% 0.0256 165.18)","oklch(37.86% 0.0256 165.18)","oklch(49.29% 0.0256 165.18)","oklch(60.71% 0.0256 165.18)","oklch(72.14% 0.0256 165.18)","oklch(83.57% 0.0256 165.18)","oklch(95% 0.0256 165.18)"]},
+      "dark-surface": {"role":"neutral","displayName":"Permukaan gelap","tonalRamp":["oklch(15% 0.0308 160.84)","oklch(26.43% 0.0308 160.84)","oklch(37.86% 0.0308 160.84)","oklch(49.29% 0.0308 160.84)","oklch(60.71% 0.0308 160.84)","oklch(72.14% 0.0308 160.84)","oklch(83.57% 0.0308 160.84)","oklch(95% 0.0308 160.84)"]},
+      "dark-ink": {"role":"neutral","displayName":"Teks utama gelap","tonalRamp":["oklch(15% 0.0106 136.56)","oklch(26.43% 0.0106 136.56)","oklch(37.86% 0.0106 136.56)","oklch(49.29% 0.0106 136.56)","oklch(60.71% 0.0106 136.56)","oklch(72.14% 0.0106 136.56)","oklch(83.57% 0.0106 136.56)","oklch(95% 0.0106 136.56)"]},
+      "dark-muted": {"role":"neutral","displayName":"Teks pendamping gelap","tonalRamp":["oklch(15% 0.0225 149.65)","oklch(26.43% 0.0225 149.65)","oklch(37.86% 0.0225 149.65)","oklch(49.29% 0.0225 149.65)","oklch(60.71% 0.0225 149.65)","oklch(72.14% 0.0225 149.65)","oklch(83.57% 0.0225 149.65)","oklch(95% 0.0225 149.65)"]},
+      "dark-line": {"role":"neutral","displayName":"Pembagi gelap","tonalRamp":["oklch(15% 0.0373 155.97)","oklch(26.43% 0.0373 155.97)","oklch(37.86% 0.0373 155.97)","oklch(49.29% 0.0373 155.97)","oklch(60.71% 0.0373 155.97)","oklch(72.14% 0.0373 155.97)","oklch(83.57% 0.0373 155.97)","oklch(95% 0.0373 155.97)"]},
+      "dark-line-control": {"role":"neutral","displayName":"Batas kontrol gelap","tonalRamp":["oklch(15% 0.0357 150.61)","oklch(26.43% 0.0357 150.61)","oklch(37.86% 0.0357 150.61)","oklch(49.29% 0.0357 150.61)","oklch(60.71% 0.0357 150.61)","oklch(72.14% 0.0357 150.61)","oklch(83.57% 0.0357 150.61)","oklch(95% 0.0357 150.61)"]},
+      "dark-accent": {"role":"primary","displayName":"Tindakan tema gelap","tonalRamp":["oklch(15% 0.0656 151.71)","oklch(26.43% 0.0656 151.71)","oklch(37.86% 0.0656 151.71)","oklch(49.29% 0.0656 151.71)","oklch(60.71% 0.0656 151.71)","oklch(72.14% 0.0656 151.71)","oklch(83.57% 0.0656 151.71)","oklch(95% 0.0656 151.71)"]},
+      "dark-accent-soft": {"role":"primary","displayName":"Bidang panduan gelap","tonalRamp":["oklch(15% 0.0480 154.67)","oklch(26.43% 0.0480 154.67)","oklch(37.86% 0.0480 154.67)","oklch(49.29% 0.0480 154.67)","oklch(60.71% 0.0480 154.67)","oklch(72.14% 0.0480 154.67)","oklch(83.57% 0.0480 154.67)","oklch(95% 0.0480 154.67)"]},
+      "dark-orange": {"role":"secondary","displayName":"Laporan tema gelap","tonalRamp":["oklch(15% 0.0845 54.08)","oklch(26.43% 0.0845 54.08)","oklch(37.86% 0.0845 54.08)","oklch(49.29% 0.0845 54.08)","oklch(60.71% 0.0845 54.08)","oklch(72.14% 0.0845 54.08)","oklch(83.57% 0.0845 54.08)","oklch(95% 0.0845 54.08)"]},
+      "dark-orange-soft": {"role":"secondary","displayName":"Bidang laporan gelap","tonalRamp":["oklch(15% 0.0385 51.63)","oklch(26.43% 0.0385 51.63)","oklch(37.86% 0.0385 51.63)","oklch(49.29% 0.0385 51.63)","oklch(60.71% 0.0385 51.63)","oklch(72.14% 0.0385 51.63)","oklch(83.57% 0.0385 51.63)","oklch(95% 0.0385 51.63)"]},
+      "dark-warm": {"role":"neutral","displayName":"Konteks ketersediaan gelap","tonalRamp":["oklch(15% 0.0321 158.23)","oklch(26.43% 0.0321 158.23)","oklch(37.86% 0.0321 158.23)","oklch(49.29% 0.0321 158.23)","oklch(60.71% 0.0321 158.23)","oklch(72.14% 0.0321 158.23)","oklch(83.57% 0.0321 158.23)","oklch(95% 0.0321 158.23)"]}
+    },
+    "typographyMeta": {
+      "display": {"displayName":"Judul utama","purpose":"Public Sans lokal; skala hero memiliki override breakpoint di CSS."},
+      "headline": {"displayName":"Judul bagian","purpose":"Membagi panduan tanpa kepadatan panel admin."},
+      "title": {"displayName":"Judul konteks","purpose":"Judul kecil; kartu dan sheet memiliki varian ukuran."},
+      "body": {"displayName":"Isi","purpose":"Bacaan utama, maksimum paragraf 73ch."},
+      "label": {"displayName":"Label tindakan","purpose":"Teks tombol dasar; bukan seluruh metadata kecil."}
+    },
+    "shadows": [
+      {"name":"overlay-light","value":"0 8px 30px #1b352d1a","purpose":"Pencarian, pengaturan, sheet, petunjuk, dan pesan di atas peta terang."},
+      {"name":"overlay-dark","value":"0 8px 30px #0004","purpose":"Padanan --shadow pada tema gelap."},
+      {"name":"search-home","value":"0 3px 12px #17392c06","purpose":"Pemisahan ringan pencarian beranda."},
+      {"name":"map-tool","value":"0 3px 12px #16332416","purpose":"Memisahkan kontrol dari tile peta."},
+      {"name":"mobile-menu","value":"0 12px 20px #153d2b12","purpose":"Menu terbuka di bawah header seluler."}
+    ],
+    "motion": [
+      {"name":"button-background","value":"background .16s","purpose":"Umpan balik hover tombol tanpa gerak dekoratif."},
+      {"name":"start-option-color","value":"color .15s","purpose":"Menandai pilihan awal saat hover."},
+      {"name":"reduced-motion","value":"@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}","purpose":"Mematikan animasi/transisi CSS; kamera dan fokus detail juga menghormati preferensi ini di komponen."}
+    ],
+    "breakpoints": [
+      {"name":"wide-min","value":"1600px"},
+      {"name":"compact-desktop-max","value":"1100px"},
+      {"name":"stacked-max","value":"850px"},
+      {"name":"mobile-max","value":"700px"},
+      {"name":"narrow-max","value":"370px"}
+    ]
+  },
+  "components": [
+    {
+      "name":"Tombol utama","kind":"button","refersTo":"button-primary",
+      "description":"Tindakan utama, dengan indikator fokus dan keadaan disabled.",
+      "html":"<button class=\"ds-primary\" type=\"button\">Cek Lokasi di Peta</button>",
+      "css":".ds-primary{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:48px;padding:11px 18px;border:1px solid transparent;border-radius:8px;background:var(--accent);color:var(--surface);font-family:'Public Sans',Arial,sans-serif;font-size:14px;font-weight:700;line-height:1.5;cursor:pointer;transition:background .16s}.ds-primary:hover{filter:brightness(.92)}.ds-primary:focus-visible{outline:3px solid var(--accent);outline-offset:4px}.ds-primary:disabled{opacity:.55;cursor:not-allowed}@media(prefers-reduced-motion:reduce){.ds-primary{transition:none}}"
+    },
+    {
+      "name":"Tombol outline","kind":"button","refersTo":"button-outline",
+      "description":"Aksi sekunder seperti ekspor dan pengaturan.",
+      "html":"<button class=\"ds-outline\" type=\"button\">Ekspor GeoJSON</button>",
+      "css":".ds-outline{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:11px 18px;border:1px solid var(--line-control);border-radius:8px;background:var(--surface);color:var(--ink);font-family:'Public Sans',Arial,sans-serif;font-size:14px;font-weight:700;line-height:1.5;cursor:pointer;transition:background .16s}.ds-outline:hover{background:var(--accent-soft)}.ds-outline:focus-visible{outline:3px solid var(--accent);outline-offset:4px}.ds-outline:disabled{opacity:.55;cursor:not-allowed}@media(prefers-reduced-motion:reduce){.ds-outline{transition:none}}"
+    },
+    {
+      "name":"Tombol ghost","kind":"button","refersTo":"button-ghost",
+      "description":"Aksi ringan yang tidak bersaing dengan fokus utama.",
+      "html":"<button class=\"ds-ghost\" type=\"button\">Muat ulang</button>",
+      "css":".ds-ghost{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:11px 18px;border:1px solid transparent;border-radius:8px;background:transparent;color:var(--ink);font-family:'Public Sans',Arial,sans-serif;font-size:14px;font-weight:700;line-height:1.5;cursor:pointer;transition:background .16s}.ds-ghost:hover{background:var(--accent-soft)}.ds-ghost:focus-visible{outline:3px solid var(--accent);outline-offset:4px}.ds-ghost:disabled{opacity:.55;cursor:not-allowed}@media(prefers-reduced-motion:reduce){.ds-ghost{transition:none}}"
+    },
+    {
+      "name":"Field tanggal","kind":"input","refersTo":"field",
+      "description":"Field filter dengan label eksplisit dan batas kontrol tegas.",
+      "html":"<label class=\"ds-field-label\">Dari tanggal<input class=\"ds-field\" type=\"date\" aria-label=\"Tanggal awal\"></label>",
+      "css":".ds-field-label{display:flex;flex-direction:column;gap:8px;font-family:'Public Sans',Arial,sans-serif;color:var(--ink)}.ds-field{min-height:48px;min-width:0;max-width:100%;padding:10px 12px;border:1px solid var(--line-control);border-radius:8px;background:var(--surface);color:var(--ink);font:inherit;accent-color:var(--accent)}.ds-field:focus-visible{outline:3px solid var(--accent);outline-offset:4px}"
+    },
+    {
+      "name":"Navigasi utama","kind":"nav",
+      "description":"Lima tujuan; tautan aktif memiliki teks dan garis, bukan warna saja. Cuplikan desktop.",
+      "html":"<nav class=\"ds-nav\" aria-label=\"Navigasi utama\"><a href=\"/\" aria-current=\"page\">Beranda</a><a href=\"/peta\">Jelajahi Peta</a><a href=\"/kejadian\">Kejadian Longsor</a><a href=\"/prediksi-ai\">Prediksi AI</a><a href=\"/tentang\">Tentang LERENG</a></nav>",
+      "css":".ds-nav{display:flex;align-items:center;gap:26px;height:80px;background:var(--surface);font-family:'Public Sans',Arial,sans-serif}.ds-nav>a{display:flex;align-items:center;position:relative;min-height:48px;height:100%;font-size:13px;font-weight:700;white-space:nowrap;color:var(--muted);text-decoration:none}.ds-nav>a[aria-current=page]{color:var(--accent)}.ds-nav>a[aria-current=page]::after{content:'';position:absolute;bottom:17px;left:0;right:0;height:2px;background:var(--accent)}.ds-nav>a:hover{text-decoration:underline;text-underline-offset:4px}.ds-nav>a:focus-visible{outline:3px solid var(--accent);outline-offset:4px}"
+    },
+    {
+      "name":"Status laporan","kind":"chip","refersTo":"status-report",
+      "description":"Label informasi noninteraktif; bukan kelas kerawanan atau tombol filter.",
+      "html":"<span class=\"ds-status\">Laporan media</span>",
+      "css":".ds-status{display:inline-flex;align-items:center;max-width:100%;padding:4px 8px;border-radius:5px;background:var(--orange-soft);color:var(--orange);font-family:'Public Sans',Arial,sans-serif;font-size:11px;font-weight:700;line-height:1.7}"
+    },
+    {
+      "name":"Kartu riwayat","kind":"card","refersTo":"incident-card",
+      "description":"Kerangka kartu tanpa menciptakan contoh kejadian, tanggal, atau statistik.",
+      "html":"<article class=\"ds-card\"><h3>Riwayat kejadian</h3><p>Ketelitian lokasi mengikuti laporan sumber. Baca detail sebelum menafsirkan titik pada peta.</p><a href=\"/kejadian\">Lihat riwayat</a></article>",
+      "css":".ds-card{display:flex;flex-direction:column;align-items:start;min-width:0;padding:24px;border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);font-family:'Public Sans',Arial,sans-serif}.ds-card h3{margin:0 0 14px;font-size:20px;font-weight:700;line-height:1.4;letter-spacing:-.015em}.ds-card p{margin:18px 0 20px;font-size:13px;line-height:1.65;color:var(--muted)}.ds-card a{display:inline-flex;align-items:center;min-height:44px;font-size:12px;font-weight:700;color:var(--accent);text-decoration:none}.ds-card a:hover{text-decoration:underline;text-underline-offset:4px}.ds-card a:focus-visible{outline:3px solid var(--accent);outline-offset:4px}"
+    },
+    {
+      "name":"Pencarian lokasi","kind":"input",
+      "description":"Pencarian provinsi atau koordinat dengan fokus pada kelompok; bukan geocoder alamat.",
+      "html":"<form class=\"ds-search\" role=\"search\" aria-label=\"Cari lokasi di peta\"><input aria-label=\"Cari wilayah atau koordinat\" placeholder=\"Cari provinsi atau koordinat…\"><button type=\"submit\" aria-label=\"Cari lokasi\"><svg width=\"21\" height=\"21\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><path d=\"M5 12h14m-7-7 7 7-7 7\"/></svg></button></form>",
+      "css":".ds-search{display:flex;align-items:center;gap:12px;min-height:62px;padding:5px 6px 5px 17px;border:1px solid var(--line-control);border-radius:10px;background:var(--surface);box-shadow:0 3px 12px #17392c06;font-family:'Public Sans',Arial,sans-serif}.ds-search:focus-within{outline:2px solid var(--accent);outline-offset:2px}.ds-search input{border:0;background:transparent;padding:8px 0;min-height:48px;min-width:0;flex:1;width:100%;font:inherit;font-size:14px;color:var(--ink);caret-color:var(--accent)}.ds-search input::placeholder{color:var(--muted);opacity:1}.ds-search input:focus-visible{outline:0}.ds-search button{display:grid;place-items:center;flex-shrink:0;width:48px;height:48px;border:0;border-radius:7px;background:var(--accent);color:var(--surface);cursor:pointer}.ds-search button:focus-visible{outline:3px solid var(--accent);outline-offset:4px}"
+    }
+  ],
+  "narrative": {
+    "northStar":"Panduan Tempat",
+    "overview":"LERENG terasa dapat dipercaya, tenang, dan ramah. Warga Indonesia, pelajar, komunitas, dan pelancong dapat memulai dari lokasi tanpa harus memahami GIS. Peta nyata dan bahasa sehari-hari menjadi pusat orientasi, bukan panel pemantauan profesional.\n\nHijau hutan menuntun tindakan; bidang hangat memberi ruang membaca. Kepadatan meningkat hanya saat pengunjung membuka pengaturan, detail, atau metode. Dunia visual ini menggantikan sidebar/dashboard lama atas arahan eksplisit pengguna. Seed `dae8a14a`; ENERGY 1 / RHYTHM 2 / MOTION 1.",
+    "keyCharacteristics":["Peta dan pencarian lokasi menjadi fokus.","Navigasi atas lima tujuan, tanpa sidebar permanen.","Informasi lanjutan dibuka sesuai kebutuhan.","Sumber, waktu, dan ketidakpastian menyertai informasi."],
+    "rules":[{"name":"The Laporan Bukan Bahaya Rule","body":"Oranye menandai laporan atau status informasi, bukan kelas kerawanan. Tanpa data tidak berarti aman atau risiko rendah.","section":"colors"}],
+    "dos":["**Do** gunakan Public Sans lokal untuk judul maupun isi.","**Do** pertahankan peta sebagai fokus dan buka kontrol lanjutan sesuai kebutuhan.","**Do** tampilkan sumber, status, ketelitian lokasi, serta waktu dengan arti yang jelas.","**Do** pertahankan fokus terlihat, kedua tema, reduced motion, dan akses riwayat tanpa peta."],
+    "donts":["**Don't** kembalikan sidebar admin permanen atau dashboard profesional sebagai pengalaman utama.","**Don't** samakan oranye laporan dengan kelas bahaya atau data kosong dengan kondisi aman.","**Don't** tampilkan skor AI, peta kerawanan, angka, atau klaim keselamatan tanpa data tervalidasi.","**Don't** ubah bottom sheet lokasi menjadi modal yang mengunci peta."]
+  }
+}

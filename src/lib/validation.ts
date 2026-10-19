@@ -1,0 +1,7 @@
+import { z } from 'zod';
+export const bboxSchema = z.string().transform(v => v.split(',').map(Number)).pipe(z.tuple([z.number().min(-180).max(180),z.number().min(-90).max(90),z.number().min(-180).max(180),z.number().min(-90).max(90)]).refine(v=>v[0]<v[2] && v[1]<v[3], 'Emprise tidak valid'));
+const date = z.iso.date();
+export const filterSchema = z.object({bbox:bboxSchema.optional(), from:date.optional(),to:date.optional(),province:z.string().trim().max(100).optional(),q:z.string().trim().max(150).optional(),status:z.enum(['official','media_reported','unverified']).optional(),limit:z.coerce.number().int().min(1).max(2000).default(500),offset:z.coerce.number().int().min(0).max(100000).default(0),lng:z.coerce.number().min(94).max(142).optional(),lat:z.coerce.number().min(-12).max(7).optional(),radius:z.coerce.number().min(1).max(200000).default(50000)}).refine(v=>!v.from || !v.to || v.from<=v.to,'Rentang tanggal tidak valid').refine(v=>(v.lng===undefined)===(v.lat===undefined),'Lintang dan bujur harus berpasangan');
+export type Filters = z.infer<typeof filterSchema>;
+export function validCoordinate(lon:unknown,lat:unknown) {return typeof lon==='number' && Number.isFinite(lon) && typeof lat==='number' && Number.isFinite(lat) && lon>=94 && lon<=142 && lat>=-12 && lat<=7;}
+export const predictionSchema = z.object({geographic_unit:z.string().min(1).max(100), horizon_hours:z.union([z.literal(24),z.literal(72)])}).strict();

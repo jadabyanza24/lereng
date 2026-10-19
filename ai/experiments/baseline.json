@@ -1,0 +1,1 @@
+{"model":"logistic_regression","horizon_hours":24,"features":["rainfall_24h","rainfall_72h","slope","elevation"],"cutoff":"2020-01-01T00:00:00Z","held_out_blocks":["REPLACE_WITH_VALIDATED_SPATIAL_BLOCKS"],"provenance":{"status":"configuration_template_not_a_dataset"}}
