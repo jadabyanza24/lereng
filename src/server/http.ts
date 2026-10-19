@@ -10,5 +10,5 @@ export function allowed(key:string,now=Date.now()) {
 }
 export function result(data:unknown,extra:Record<string,unknown>={},status=200) {
  const empty=Array.isArray(data)?data.length===0:false;
- return NextResponse.json({data,meta:{availability:empty?'empty':'available',retrieved_at:new Date().toISOString(),...extra}},{status,headers:{'Cache-Control':status===200?'public, max-age=30, stale-while-revalidate=60':'no-store'}});
+ return NextResponse.json({data,meta:{availability:empty?'empty':'available',retrieved_at:new Date().toISOString(),...extra}},{status,headers:{'Cache-Control':status===200?'public, s-maxage=60, stale-while-revalidate=300':'no-store'}});
 }

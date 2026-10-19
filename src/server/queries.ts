@@ -30,8 +30,11 @@ export async function analytics(f:Filters) {
 export async function regions(f:Filters,geojson=false) {
  const db=database();
  const where=f.q?sql`name ILIKE ${'%'+f.q+'%'}`:sql`true`;
- const rows=await db.execute(sql`SELECT id,name,level,source_id,ST_AsGeoJSON(ST_SimplifyPreserveTopology(geom,0.006))::json AS geometry,ST_AsGeoJSON(ST_PointOnSurface(geom))::json AS center,ST_XMin(Box3D(geom)) AS west,ST_YMin(Box3D(geom)) AS south,ST_XMax(Box3D(geom)) AS east,ST_YMax(Box3D(geom)) AS north FROM administrative_regions WHERE ${where} ORDER BY name LIMIT ${f.limit}`);
- return geojson?{type:'FeatureCollection',features:rows.map(r=>({type:'Feature',geometry:r.geometry,properties:{id:r.id,name:r.name}}))}:rows;
+ if(geojson) {
+  const rows=await db.execute(sql`SELECT id,name,level,source_id,ST_AsGeoJSON(ST_Simplify(geom,0.008))::json AS geometry,ST_AsGeoJSON(ST_PointOnSurface(geom))::json AS center,ST_XMin(Box3D(geom)) AS west,ST_YMin(Box3D(geom)) AS south,ST_XMax(Box3D(geom)) AS east,ST_YMax(Box3D(geom)) AS north FROM administrative_regions WHERE ${where} ORDER BY name LIMIT ${f.limit}`);
+  return {type:'FeatureCollection',features:rows.map(r=>({type:'Feature',geometry:r.geometry,properties:{id:r.id,name:r.name}}))};
+ }
+ return db.execute(sql`SELECT id,name,level,source_id,ST_AsGeoJSON(ST_PointOnSurface(geom))::json AS center,ST_XMin(Box3D(geom)) AS west,ST_YMin(Box3D(geom)) AS south,ST_XMax(Box3D(geom)) AS east,ST_YMax(Box3D(geom)) AS north FROM administrative_regions WHERE ${where} ORDER BY name LIMIT ${f.limit}`);
 }
 export async function environment(kind:string,f:Filters) {
  const db=database();

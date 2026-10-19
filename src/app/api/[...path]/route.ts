@@ -41,10 +41,11 @@ export async function GET(request:NextRequest,ctx:Context) {
   if(path==='susceptibility') {
    const format=request.nextUrl.searchParams.get('format');
    const where=f.province?sql`s.official=true AND s.legend->>'province'=${f.province}`:sql`s.official=true AND s.id NOT LIKE 'pvmbg-zkgt:regional-rendah-%'`;
-   const rows=await database().execute(sql`SELECT s.id,s.classification,s.legend,s.official,d.name,d.source_id,d.updated_at,d.limitations,ST_AsGeoJSON(ST_SimplifyPreserveTopology(s.geom,0.005))::json AS geometry FROM susceptibility_layers s JOIN geospatial_datasets d ON d.id=s.dataset_id WHERE ${where} ORDER BY CASE WHEN s.classification ILIKE '%Tinggi%' THEN 1 WHEN s.classification ILIKE '%Menengah%' THEN 2 ELSE 3 END LIMIT ${f.limit}`);
    if(format==='geojson') {
+    const rows=await database().execute(sql`SELECT s.id,s.classification,s.legend,s.official,d.name,d.source_id,d.updated_at,d.limitations,ST_AsGeoJSON(ST_Simplify(s.geom,0.008))::json AS geometry FROM susceptibility_layers s JOIN geospatial_datasets d ON d.id=s.dataset_id WHERE ${where} ORDER BY CASE WHEN s.classification ILIKE '%Tinggi%' THEN 1 WHEN s.classification ILIKE '%Menengah%' THEN 2 ELSE 3 END LIMIT ${f.limit}`);
     return result({type:'FeatureCollection',features:rows.map(r=>({type:'Feature',id:r.id,geometry:r.geometry,properties:{id:r.id,classification:r.classification,official:r.official,name:r.name,source_id:r.source_id,updated_at:r.updated_at,limitations:r.limitations,...(typeof r.legend==='object'&&r.legend!==null?r.legend:{})}}))});
    }
+   const rows=await database().execute(sql`SELECT s.id,s.classification,s.legend,s.official,d.name,d.source_id,d.updated_at,d.limitations FROM susceptibility_layers s JOIN geospatial_datasets d ON d.id=s.dataset_id WHERE ${where} ORDER BY CASE WHEN s.classification ILIKE '%Tinggi%' THEN 1 WHEN s.classification ILIKE '%Menengah%' THEN 2 ELSE 3 END LIMIT ${f.limit}`);
    return result(rows,{total:rows.length});
   }
   if(path==='health') {await database().execute(sql`SELECT PostGIS_Version()`);return result({status:'ok',database:'postgis'});}
