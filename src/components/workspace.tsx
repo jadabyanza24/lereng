@@ -95,7 +95,7 @@ export function Workspace({ view }: { view: string }) {
   const weatherRegion = regions.data?.data.find(region => provinceLabel(region.name) === province);
   if (weatherRegion) weatherParameters.set('province', weatherRegion.name);
   const weatherFilters = weatherParameters.toString();
-  const incidents = useQuery({ queryKey: ['incidents', filters], queryFn: () => get<Incident[]>(`incidents?${filters}&limit=3500`), staleTime: 300000, enabled: mapView && !invalidDates });
+  const incidents = useQuery({ queryKey: ['incidents', filters], queryFn: () => get<Incident[]>(`incidents?${filters}&limit=2000`), staleTime: 300000, enabled: mapView && !invalidDates });
   const stats = useQuery({ queryKey: ['analytics', filters], queryFn: () => get<Analytics>('analytics?' + filters), enabled: (mapView || view === 'kejadian' || isHome) && !invalidDates });
   const incidentList = useQuery({ queryKey: ['incident-list', filters, offset], queryFn: () => get<Incident[]>(`incidents?${filters}&limit=25&offset=${offset}`), enabled: view === 'kejadian' && !invalidDates });
   const latest = useQuery({ queryKey: ['latest-incidents'], queryFn: () => get<Incident[]>('incidents?limit=3'), enabled: isHome });
