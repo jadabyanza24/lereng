@@ -1,0 +1,13 @@
+{
+  "source": "geoBoundaries gbOpen, IDN ADM1 and ADM2",
+  "adm1_year": "2017",
+  "adm2_year": "2020",
+  "adm2_boundary_id": "IDN-ADM2-22746128",
+  "adm2_source": "Badan Pusat Statistik, World Food Programme, OCHA ROAP",
+  "adm2_license": "CC BY 3.0 IGO",
+  "adm2_metadata_url": "https://www.geoboundaries.org/api/current/gbOpen/IDN/ADM2/",
+  "adm2_source_url": "https://data.humdata.org/dataset/indonesia-administrative-boundary-polygons-lines-and-places-levels-0-4b",
+  "adm2_download_url": "https://media.githubusercontent.com/media/wmgeolab/geoBoundaries/9469f09/releaseData/gbOpen/IDN/ADM2/geoBoundaries-IDN-ADM2_simplified.geojson",
+  "adm2_sha256": "146653d488331086ddc43d159a261b01ea6dd08c7ed422e34a9886c3c690430c",
+  "limitations": "Indeks pencarian, bukan batas hukum atau daftar pemekaran terkini. Nama kabupaten diberi prefiks Kabupaten; Kota dipertahankan dari sumber. Titik representatif dihitung dengan PostGIS ST_PointOnSurface, bukan koordinat kejadian longsor. Provinsi induk mengikuti batas referensi ADM1 2017 terdekat. Peta menampilkan wilayah melalui bounding box; informasi sekitar titik tidak mewakili seluruh wilayah."
+}

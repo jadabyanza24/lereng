@@ -1,6 +1,8 @@
 import { describe,it,expect,vi,afterEach } from 'vitest';
-import { normalizeIncident,fingerprint,fetchSource } from '../src/server/ingestion';
+import { normalizeIncident,fingerprint,fetchSource,extractIndonesianCoordinates,zkgtMeta } from '../src/server/ingestion';
+import { formatPenyelidikanTitleAndDescription,normalizeDistrictName,normalizeRegencyName,normalizeVillageName,parseMagmaAdminFromTitle } from '../src/lib/admin-normalization';
 import { validCoordinate,filterSchema,predictionSchema } from '../src/lib/validation';
+import { normalizeProvince } from '../src/lib/presentation';
 import { incidentWhere } from '../src/server/queries';
 import { PgDialect } from 'drizzle-orm/pg-core';
 import { allowed } from '../src/server/http';
@@ -11,6 +13,24 @@ describe('normalisasi dan provenance',()=>{
  it('tidak menciptakan lokasi untuk koordinat tidak valid',()=>{const row=normalizeIncident({...input,longitude:0},'2026-01-01T00:00:00Z');expect(row.longitude).toBeNull();expect(row.latitude).toBeNull();});
  it('identitas upsert dan fingerprint stabil',()=>{const a=normalizeIncident(input,'2026-01-01T00:00:00Z'),b=normalizeIncident(input,'2026-02-01T00:00:00Z');expect(a.id).toBe(b.id);expect(a.fingerprint).toBe(b.fingerprint);expect(fingerprint('2020-01-01',107,-7,'  A  B ')).toBe(fingerprint('2020-01-01',107,-7,'a b'));});
  it('menolak sumber/struktur palsu dan tautan skrip',()=>{expect(()=>normalizeIncident({...input,country_na:'Other'},'2026-01-01')).toThrow();expect(normalizeIncident({...input,source_lin:'javascript:alert(1)'},'2026-01-01').source_url).toMatch(/^https:/);});
+ it('mengekstrak koordinat laporan PVMBG, menormalisasi nama provinsi/kabupaten/kecamatan, dan memetakan kelas ZKGT',()=>{
+  expect(extractIndonesianCoordinates('posisi 0,9523° LS dan 100,6209° BT')).toEqual({latitude:-0.9523,longitude:100.6209});
+  expect(extractIndonesianCoordinates('Koordinat 07° 06\' 00" LS dan 107° 36\' 00" BT')).toEqual({latitude:-7.1,longitude:107.6});
+  expect(extractIndonesianCoordinates('6⁰ 63\' 91,34 LS dan 107⁰ 43\' 4,646" BT')).toEqual({latitude:-6.639134,longitude:107.434646});
+  expect(extractIndonesianCoordinates('posisi 0° LS dan 10° BT')).toBeNull();
+  expect(normalizeProvince('Provinsi Sumatra Barat')).toBe('Sumatera Barat');
+  expect(normalizeProvince('West Java')).toBe('Jawa Barat');
+  expect(normalizeProvince('D.I. Yogyakarta')).toBe('Daerah Istimewa Yogyakarta');
+  expect(normalizeRegencyName('Bandun')).toBe('Kabupaten Bandung');
+  expect(normalizeRegencyName('Kab. Brebes')).toBe('Kabupaten Brebes');
+  expect(normalizeDistrictName('Nyalind')).toBe('Nyalindung');
+  expect(normalizeVillageName('Nyakokot','Cinanas')).toBe('Cinanas (Nyakokot)');
+  expect(parseMagmaAdminFromTitle('Laporan Tanggapan Gerakan Tanah di Cinanas, Bantarkawung, Kabupaten Brebes, Jawa Tengah','')).toEqual({province:'Jawa Tengah',regency:'Kabupaten Brebes',district:'Bantarkawung',village:'Cinanas'});
+  expect(formatPenyelidikanTitleAndDescription({eventTypeRaw:'Pasca',landslideTypeRaw:'Longsoran',investigationYear:'2022',docId:'163_2022',village:'Cinanas',district:'Bantarkawung',regency:'Kabupaten Brebes',province:'Jawa Tengah'}).title).toBe('Penyelidikan pascabencana gerakan tanah PVMBG · Cinanas, Bantarkawung, Kabupaten Brebes, Jawa Tengah');
+  expect(zkgtMeta('Tinggi','Jawa Barat').classification).toBe('Zona Kerentanan Tinggi');
+  expect(zkgtMeta('Menengah','Jawa Barat').level).toBe('Menengah');
+  expect(zkgtMeta('Sangat Rendah','Jawa Barat').level).toBe('Sangat Rendah');
+ });
 });
 describe('validasi API dan parameterisasi spasial',()=>{
  it('menolak koordinat asing dan non-finite',()=>{expect(validCoordinate(107,-7)).toBe(true);expect(validCoordinate(0,0)).toBe(false);expect(validCoordinate(NaN,-7)).toBe(false);expect(validCoordinate('107',-7)).toBe(false);});

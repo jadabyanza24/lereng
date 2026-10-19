@@ -18,6 +18,8 @@
     "worker": "tsx scripts/schedule.ts"
   },
   "dependencies": {
+    "@neon/config": "^1.9.2",
+    "@neon/env": "^1.6.3",
     "@radix-ui/react-slot": "^1.2.4",
     "@tailwindcss/postcss": "^4.2.0",
     "@tanstack/react-query": "^5.90.0",

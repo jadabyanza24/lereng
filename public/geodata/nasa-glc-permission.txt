@@ -1,6 +1,5 @@
 NASA Global Landslide Catalog (GLC)
-Retrieved: 2026-10-19T10:04:32.341Z
-Metadata: https://www.arcgis.com/sharing/rest/content/items/31f8fca315a5458a9800cfd102504257?f=json
+Retrieved: 2026-10-19T12:58:07.613Z
 Modifications: Indonesia subset normalized to LERENG schema; original records retained.
 
 

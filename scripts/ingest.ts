@@ -3,7 +3,7 @@ import { ingest } from '../src/server/ingestion';
 import { sqlClient } from '../src/server/db';
 const sources=process.argv.slice(2);
 try {
- for(const s of sources.length?sources:['geoboundaries','nasa-glc','bmkg-forecast','bmkg-cap']) {
+ for(const s of sources.length?sources:['geoboundaries','nasa-glc','bnpb-releases','pvmbg-tanggapan','pvmbg-penyelidikan','pvmbg-magma','bnpb','pvmbg','bmkg-forecast','bmkg-cap']) {
   try {await ingest(s);} catch {process.exitCode=1;}
  }
 } finally {await sqlClient().end();}

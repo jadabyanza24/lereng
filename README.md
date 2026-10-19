@@ -48,6 +48,17 @@ npm run ingest -- bmkg-forecast bmkg-cap
 npm run worker
 ```
 
+### Catatan longsor dari rilis terbaru
+
+```sh
+npm run db:migrate
+npm run ingest -- bnpb-releases
+```
+
+`db/reviewed-releases.json` berisi kurasi ringkasan fakta dari rilis BNPB yang dibaca pada 19 Oktober 2026: dua laporan banjir dan longsor di Gayo Lues dan Aceh Tenggara pada 9 Oktober 2026, diterbitkan 11 Oktober. Ini bukan inventaris nasional terkini. Teks lengkap dan foto tidak disalin. Tautan sumber, tanggal publikasi, dan tanggal peninjauan dipertahankan. Status `official` berarti berasal dari rilis resmi, bukan verifikasi lapangan independen.
+
+Koordinat tidak tersedia sehingga catatan ini muncul di **Kejadian Longsor**, bukan sebagai titik peta. Jam kejadian tidak diketahui; pukul 00.00 UTC dalam penyimpanan hanya penanda tanggal agar sesuai filter tanggal API. Angka korban/kerusakan gabungan banjir dan longsor tidak diatribusikan ke longsor. Impor ulang memperbarui ID yang sama tanpa menggandakan catatan. Kurasi tidak dijalankan worker dan perlu peninjauan sumber sebelum menambah/mengubah catatan; tanggal peninjauan bukan tanggal impor ulang. Worker yang sudah ada memperbarui BMKG sesuai frekuensi sumber selama proses `npm run worker` tetap hidup.
+
 - NASA GLC diakses melalui salinan ArcGIS publik, **bukan BNPB**. Catatan berstatus laporan media; koordinat perkiraan dan nilai korban yang tidak diketahui tetap tidak diketahui.
 - geoBoundaries ADM1 adalah batas 34 provinsi representasi 2017, **bukan batas resmi BIG saat ini**. Geometri disimpan di PostGIS dan cache `public/geodata/`.
 - Prakiraan BMKG hanya untuk kode desa yang ditentukan `BMKG_ADM4`, pisahkan beberapa kode dengan koma. Default Kemayoran berasal dari contoh resmi BMKG; bukan cakupan prakiraan nasional.

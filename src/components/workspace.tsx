@@ -6,13 +6,14 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import { ArrowRight, BrainCircuit, ChevronRight, CloudRain, Download, ExternalLink, Info, MapPin, Mountain, RefreshCw, Search, Settings2, ShieldCheck, X } from 'lucide-react';
+import { ArrowRight, BrainCircuit, ChevronRight, CloudRain, Download, ExternalLink, Info, Layers, MapPin, Mountain, RefreshCw, Search, Settings2, ShieldCheck, X } from 'lucide-react';
 import { Button } from './ui/button';
+import { OrientationMap } from './orientation-map';
 import type { MapTarget } from './geo-map';
-import type { Incident, Source, Analytics, ApiResult } from '@/lib/types';
+import type { Incident, Source, Analytics, SusceptibilityZone, ApiResult, Place } from '@/lib/types';
 import { views } from '@/lib/navigation';
 import { provinceLabel } from '@/lib/presentation';
-import { DataState, DataStatus, EducationalSection, HowItWorks, IncidentCard, IncidentDetails, LocationBottomSheet, LocationSearch, ProvenanceNote, PublicFooter, PublicNavbar, StartOptions, TrustedSources, formatDate as date, formatNumber as number } from './public-ui';
+import { DataState, DataStatus, EducationalSection, HowItWorks, IncidentCard, IncidentDetails, LocationBottomSheet, LocationSearch, ProvenanceNote, PublicFooter, PublicNavbar, StartOptions, SusceptibilityCard, TrustedSources, formatDate as date, formatNumber as number } from './public-ui';
 
 const GeoMap = dynamic(() => import('./geo-map'), { ssr: false, loading: () => <div className="map-loading" role="status">Sedang membuka peta… Jika koneksi lambat, Anda juga bisa membaca <Link href="/kejadian">daftar kejadian</Link>.</div> });
 type Region = { id: string; name: string; west: number; south: number; east: number; north: number; center: { coordinates: [number, number] } };
@@ -40,12 +41,32 @@ export function Workspace({ view }: { view: string }) {
   const [dark, setDark] = useState(false), [settingsOpen, setSettingsOpen] = useState(false);
   const [search, setSearch] = useState(''), [query, setQuery] = useState(''), [province, setProvince] = useState(''), [from, setFrom] = useState(''), [to, setTo] = useState(''), [status, setStatus] = useState('');
   const [bbox, setBbox] = useState('94,-12,142,7'), [selected, setSelected] = useState<Incident | null>(null), [point, setPoint] = useState<{ lng: number; lat: number } | null>(null), [target, setTarget] = useState<MapTarget | null>(null);
-  const [showIncidents, setShowIncidents] = useState(true), [showBoundaries, setShowBoundaries] = useState(true), [opacity, setOpacity] = useState(0.85), [basemap, setBasemap] = useState('streets'), [horizon, setHorizon] = useState(24), [searchMessage, setSearchMessage] = useState(''), [offset, setOffset] = useState(0);
+  const [showIncidents, setShowIncidents] = useState(true), [showBoundaries, setShowBoundaries] = useState(true), [showSusceptibility, setShowSusceptibility] = useState(true), [opacity, setOpacity] = useState(0.85), [basemap, setBasemap] = useState('streets'), [horizon, setHorizon] = useState(24), [searchMessage, setSearchMessage] = useState(''), [offset, setOffset] = useState(0);
   const [linkedIncident, setLinkedIncident] = useState('');
+  const [linkedPlaceId, setLinkedPlaceId] = useState('');
+  const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
+  const [previewProvince, setPreviewProvince] = useState('');
   const settingsButton = useRef<HTMLButtonElement>(null);
   const detailAnchor = useRef<HTMLDivElement>(null);
   const detailTrigger = useRef<HTMLElement | null>(null);
   const hydratedSearch = useRef(false);
+  const searchRequest = useRef(0);
+  useEffect(() => {
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+    if (reduced.matches) return;
+    const animations: Animation[] = [];
+    const observer = new IntersectionObserver(entries => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        animations.push(entry.target.animate([{ opacity: 0.65, transform: 'translateY(12px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 420, easing: 'cubic-bezier(.2,.8,.2,1)' }));
+        observer.unobserve(entry.target);
+      }
+    }, { threshold: 0.08 });
+    document.querySelectorAll('#main .content-section, #main .page-heading, #main .orientation-intro, #main .orientation-index').forEach(element => observer.observe(element));
+    const stop = () => { if (reduced.matches) { observer.disconnect(); animations.forEach(animation => animation.cancel()); } };
+    reduced.addEventListener('change', stop);
+    return () => { observer.disconnect(); animations.forEach(animation => animation.cancel()); reduced.removeEventListener('change', stop); };
+  }, [view]);
   useEffect(() => {
     const saved = localStorage.getItem('lereng-theme');
     const isDark = saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
@@ -74,28 +95,31 @@ export function Workspace({ view }: { view: string }) {
   const weatherRegion = regions.data?.data.find(region => provinceLabel(region.name) === province);
   if (weatherRegion) weatherParameters.set('province', weatherRegion.name);
   const weatherFilters = weatherParameters.toString();
-  const incidents = useQuery({ queryKey: ['incidents', filters, bbox], queryFn: () => get<Incident[]>(`incidents?${filters}&bbox=${bbox}&limit=2000`), enabled: (mapView || isHome) && !invalidDates });
-  const stats = useQuery({ queryKey: ['analytics', filters], queryFn: () => get<Analytics>('analytics?' + filters), enabled: (mapView || view === 'kejadian') && !invalidDates });
+  const incidents = useQuery({ queryKey: ['incidents', filters, bbox], queryFn: () => get<Incident[]>(`incidents?${filters}&bbox=${bbox}&limit=2000`), enabled: mapView && !invalidDates });
+  const stats = useQuery({ queryKey: ['analytics', filters], queryFn: () => get<Analytics>('analytics?' + filters), enabled: (mapView || view === 'kejadian' || isHome) && !invalidDates });
   const incidentList = useQuery({ queryKey: ['incident-list', filters, offset], queryFn: () => get<Incident[]>(`incidents?${filters}&limit=25&offset=${offset}`), enabled: view === 'kejadian' && !invalidDates });
   const latest = useQuery({ queryKey: ['latest-incidents'], queryFn: () => get<Incident[]>('incidents?limit=3'), enabled: isHome });
   const selectedParams = point ? `lng=${point.lng}&lat=${point.lat}&radius=50000` : '';
   const nearby = useQuery({ queryKey: ['nearby', selectedParams, filters], queryFn: () => get<Incident[]>(`incidents/nearby?${selectedParams}&${filters}&limit=10`), enabled: !!point });
   const forecast = useQuery({ queryKey: ['forecast', selectedParams, weatherFilters], queryFn: () => get<Forecast[]>('weather/forecasts?' + selectedParams + '&' + weatherFilters), enabled: (mapView || view === 'lingkungan') && !invalidDates });
   const warnings = useQuery({ queryKey: ['warnings', selectedParams, weatherFilters], queryFn: () => get<Warning[]>('weather/warnings?' + selectedParams + '&' + weatherFilters), enabled: (mapView || view === 'lingkungan') && !invalidDates });
-  const location = useQuery({ queryKey: ['location', selectedParams], queryFn: () => get<{ regions: { name: string }[] }>('location?' + selectedParams), enabled: !!point });
+  const location = useQuery({ queryKey: ['location', selectedParams], queryFn: () => get<{ regions: { name: string }[]; susceptibility: SusceptibilityZone[] }>('location?' + selectedParams), enabled: !!point });
   const layerMetadata = useQuery({ queryKey: ['layers'], queryFn: () => get<Layer[]>('layers'), enabled: view === 'sumber-data' });
   const ai = useQuery({ queryKey: ['ai'], queryFn: () => get<{ status: string; message: string }>('ai/status'), enabled: view === 'prediksi-ai' });
   const linked = useQuery({ queryKey: ['linked-incident', linkedIncident], queryFn: () => get<Incident>('incidents/' + encodeURIComponent(linkedIncident)), enabled: !!linkedIncident && mapView });
+  const linkedPlace = useQuery({ queryKey: ['place', linkedPlaceId], queryFn: () => get<Place[]>('places?id=' + encodeURIComponent(linkedPlaceId)), enabled: !!linkedPlaceId && mapView });
   const onViewport = useCallback((value: string) => setBbox(value), []);
-  const onSelect = useCallback((value: { lng: number; lat: number }, incident?: Incident) => { setPoint(value); setSelected(incident || null); }, []);
+  const onSelect = useCallback((value: { lng: number; lat: number }, incident?: Incident) => { setSelectedPlace(null); setTarget(null); setPoint(value); setSelected(incident || null); }, []);
 
   function selectIncident(incident: Incident) {
+    setSelectedPlace(null);
     if (!mapView) detailTrigger.current = document.activeElement as HTMLElement;
     setSelected(incident);
     if (mapView && incident.longitude !== null && incident.latitude !== null) { const value = { lng: incident.longitude, lat: incident.latitude }; setPoint(value); setTarget(value); }
     if (!mapView) requestAnimationFrame(() => { detailAnchor.current?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'start' }); detailAnchor.current?.focus({ preventScroll: true }); });
   }
   function selectProvince(name: string) {
+    setSelectedPlace(null);
     setProvince(name); setOffset(0);
     const region = regions.data?.data.find(item => provinceLabel(item.name) === name);
     if (region && mapView) { const value = { lng: region.center.coordinates[0], lat: region.center.coordinates[1] }; setTarget({ ...value, bounds: [region.west, region.south, region.east, region.north] }); setPoint(value); setSelected(null); }
@@ -114,23 +138,67 @@ export function Workspace({ view }: { view: string }) {
     });
   }, [mapView, regions.data]);
   useEffect(() => { if (linked.data?.data) queueMicrotask(() => setSelected(linked.data!.data)); }, [linked.data]);
-  function searchLocation(event: React.FormEvent) {
-    event.preventDefault();
-    const coordinate = search.trim().match(/^(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)$/);
+
+  useEffect(() => {
+    if (!mapView) return;
+    const id = new URLSearchParams(window.location.search).get('place');
+    if (id) queueMicrotask(() => setLinkedPlaceId(id));
+  }, [mapView]);
+  useEffect(() => {
+    const place = linkedPlace.data?.data[0];
+    if (!place) return;
+    queueMicrotask(() => { setSelectedPlace(place); setSearch(place.name); setProvince(place.province); setPoint({ lng: place.lng, lat: place.lat }); setTarget({ lng: place.lng, lat: place.lat, bounds: place.bounds }); setSelected(null); });
+  }, [linkedPlace.data]);
+
+  function choosePlace(place: Place) {
+    searchRequest.current++;
+    setSearch(place.name); setSearchMessage('');
+    if (!mapView) { router.push('/peta?place=' + encodeURIComponent(place.id)); return; }
+    setSelectedPlace(place); setProvince(place.province); setPoint({ lng: place.lng, lat: place.lat }); setTarget({ lng: place.lng, lat: place.lat, bounds: place.bounds }); setSelected(null);
+  }
+
+  async function runSearchValue(raw: string) {
+    const request = ++searchRequest.current;
+    const trimmed = raw.trim();
+    const coordinate = trimmed.match(/^(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)$/);
     if (coordinate) {
       const lat = Number(coordinate[1]), lng = Number(coordinate[2]);
-      if (lat >= -12 && lat <= 7 && lng >= 94 && lng <= 142) { if (!mapView) router.push(`/peta?lat=${lat}&lng=${lng}`); else { setTarget({ lat, lng }); setPoint({ lat, lng }); setSelected(null); setSearchMessage(''); } }
-      else setSearchMessage('Koordinat berada di luar cakupan Indonesia. Tulis lintang, bujur, misalnya -6.9, 107.6.');
+      if (lat >= -12 && lat <= 7 && lng >= 94 && lng <= 142) {
+        if (!mapView) router.push(`/peta?lat=${lat}&lng=${lng}`);
+        else { setSelectedPlace(null); setTarget({ lat, lng }); setPoint({ lat, lng }); setSelected(null); setSearchMessage(''); }
+      } else {
+        setSearchMessage('Koordinat berada di luar cakupan Indonesia. Tulis lintang, bujur, misalnya -6.9, 107.6.');
+      }
       return;
     }
-    const found = regions.data?.data.find(item => provinceLabel(item.name).toLowerCase().includes(search.trim().toLowerCase()) || item.name.toLowerCase().includes(search.trim().toLowerCase()));
-    if (found && search.trim()) { if (!mapView) router.push('/peta?q=' + encodeURIComponent(provinceLabel(found.name))); else { selectProvince(provinceLabel(found.name)); setSearchMessage(''); } }
-    else setSearchMessage(regions.isError ? 'Daftar provinsi belum bisa dimuat. Coba koordinat atau muat ulang halaman.' : 'Provinsi belum ditemukan. Saat ini pencarian mendukung nama provinsi atau koordinat, belum alamat jalan.');
+    const found = regions.data?.data.find(item => provinceLabel(item.name).toLowerCase() === trimmed.toLowerCase() || item.name.toLowerCase() === trimmed.toLowerCase());
+    if (found && trimmed) {
+      if (!mapView) router.push('/peta?q=' + encodeURIComponent(provinceLabel(found.name)));
+      else { selectProvince(provinceLabel(found.name)); setSearchMessage(''); }
+    } else {
+      if (trimmed.length < 2) { setSearchMessage('Tulis sedikitnya dua huruf nama wilayah atau koordinat.'); return; }
+      try {
+        const response = await get<Place[]>(`places?q=${encodeURIComponent(trimmed)}&limit=10`);
+        if (request !== searchRequest.current) return;
+        const exact = response.data.find(place => place.name.toLowerCase() === trimmed.toLowerCase());
+        if (exact || response.data.length === 1) choosePlace(exact || response.data[0]);
+        else setSearchMessage(response.data.length ? 'Ada beberapa wilayah dengan nama serupa. Pilih kabupaten atau kota dari rekomendasi.' : 'Wilayah belum ditemukan. Coba nama lain atau koordinat.');
+      } catch { if (request === searchRequest.current) setSearchMessage('Pencarian wilayah belum bisa dimuat. Coba lagi atau gunakan koordinat.'); }
+    }
+  }
+  function searchLocation(event: React.FormEvent) {
+    event.preventDefault();
+    void runSearchValue(search);
+  }
+  function handleQuickSelect(val: string) {
+    setSearch(val);
+    if (!mapView && !val.includes(',')) { router.push('/peta?q=' + encodeURIComponent(val)); return; }
+    void runSearchValue(val);
   }
   function exportRecords() {
     const records = view === 'kejadian' ? incidentList.data?.data : incidents.data?.data;
     if (!records?.length || invalidDates) return;
-    const collection = { type: 'FeatureCollection', features: records.map(incident => ({ type: 'Feature', geometry: incident.longitude === null || incident.latitude === null ? null : { type: 'Point', coordinates: [incident.longitude, incident.latitude] }, properties: incident })), attribution: 'NASA Global Landslide Catalog via public ArcGIS mirror. See DATA_SOURCES.md and /api/sources for permission and uncertainty. Export is the currently loaded page/viewport only.' };
+    const collection = { type: 'FeatureCollection', features: records.map(incident => ({ type: 'Feature', geometry: incident.longitude === null || incident.latitude === null ? null : { type: 'Point', coordinates: [incident.longitude, incident.latitude] }, properties: incident })), attribution: 'PVMBG Badan Geologi ESDM, BNPB, dan NASA Global Landslide Catalog. Lihat DATA_SOURCES.md dan /api/sources untuk izin dan ketidakpastian.' };
     const url = URL.createObjectURL(new Blob([JSON.stringify(collection, null, 2)], { type: 'application/geo+json' }));
     const anchor = document.createElement('a'); anchor.href = url; anchor.download = 'lereng-catatan-terpilih.geojson'; anchor.click(); URL.revokeObjectURL(url);
   }
@@ -138,17 +206,18 @@ export function Workspace({ view }: { view: string }) {
   function closeIncident() { setSelected(null); if (!mapView) requestAnimationFrame(() => detailTrigger.current?.focus({ preventScroll: true })); }
   const data = stats.data?.data;
   const latestSource = sources.data?.data.filter(source => source.last_success_at).sort((a, b) => b.last_success_at!.localeCompare(a.last_success_at!))[0];
-  const searchControl = <LocationSearch value={search} onChange={setSearch} onSubmit={searchLocation} regions={regions.data?.data.map(region => provinceLabel(region.name))} error={searchMessage} compact={mapView} />;
+  const searchControl = <LocationSearch value={search} onChange={value => { searchRequest.current++; setSearch(value); setSearchMessage(''); }} onSubmit={searchLocation} onPlaceSelect={choosePlace} onQuickSelect={handleQuickSelect} onPreview={isHome ? setPreviewProvince : undefined} error={searchMessage} compact={mapView} />;
   const filtersControl = <div className="filter-controls"><label>Provinsi<select aria-label="Pilih provinsi" value={province} onChange={event => selectProvince(event.target.value)}><option value="">Seluruh Indonesia</option>{[...new Set([...(regions.data?.data.map(region => provinceLabel(region.name)) || []), ...(data?.provinces.map(item => item.name) || [])])].sort().map(name => <option key={name}>{name}</option>)}</select></label><label>Dari tanggal<input type="date" aria-label="Tanggal awal" value={from} onChange={event => { setFrom(event.target.value); setOffset(0); }} /></label><label>Sampai tanggal<input type="date" aria-label="Tanggal akhir" aria-invalid={invalidDates} value={to} onChange={event => { setTo(event.target.value); setOffset(0); }} /></label><label>Jenis laporan<select aria-label="Status verifikasi" value={status} onChange={event => { setStatus(event.target.value); setOffset(0); }}><option value="">Semua laporan</option><option value="official">Sumber resmi</option><option value="media_reported">Laporan media</option><option value="unverified">Belum terverifikasi</option></select></label>{(province || from || to || status || query) && <Button variant="ghost" onClick={clearFilters}>Hapus filter</Button>}{invalidDates && <p role="alert" className="inline-message">Tanggal akhir tidak boleh lebih awal dari tanggal awal.</p>}</div>;
   const refresh = <Button variant="ghost" onClick={() => void queryClient.invalidateQueries()}><RefreshCw size={16} />Muat ulang</Button>;
-  const map = <GeoMap incidents={incidents.data?.data || []} target={target} onViewport={onViewport} onSelect={isHome ? (value, incident) => router.push(`/peta?lat=${value.lat}&lng=${value.lng}${incident ? '&incident=' + encodeURIComponent(incident.id) : ''}`) : onSelect} showIncidents={showIncidents} showBoundaries={showBoundaries} opacity={opacity} basemap={basemap} dark={dark} />;
+  const map = <GeoMap incidents={incidents.data?.data || []} target={target} selectedPoint={point} onViewport={onViewport} onSelect={isHome ? (value, incident) => router.push(`/peta?lat=${value.lat}&lng=${value.lng}${incident ? '&incident=' + encodeURIComponent(incident.id) : ''}`) : onSelect} showIncidents={showIncidents} showBoundaries={showBoundaries} showSusceptibility={showSusceptibility} opacity={opacity} basemap={basemap} dark={dark} />;
   const riskInformation = <>
-    <DataState loading={location.isLoading} error={location.error}><h3>{location.data?.data.regions.map(region => provinceLabel(region.name)).join(', ') || 'Lokasi yang Anda pilih'}</h3></DataState>
+    {selectedPlace ? <><h3>{selectedPlace.name}</h3><p className="small muted">{selectedPlace.province}. Titik representatif untuk orientasi, bukan lokasi kejadian. Informasi di bawah berlaku di sekitar titik ini, bukan seluruh wilayah. <Link href="/geodata/place-metadata.json">Sumber batas referensi</Link>.</p></> : <DataState loading={location.isLoading} error={location.error}><h3>{location.data?.data.regions.map(region => provinceLabel(region.name)).join(', ') || 'Lokasi yang Anda pilih'}</h3></DataState>}
+    {selectedPlace && <DataState loading={location.isLoading} error={location.error}>{null}</DataState>}
     {point && <p className="coordinates">{point.lat.toFixed(5)}° , {point.lng.toFixed(5)}°</p>}
-    <section className="risk-availability"><Mountain size={23} /><div><h3>Kerawanan belum diketahui</h3><p>Peta kerawanan resmi belum tersedia di LERENG. Ini <strong>bukan berarti lokasi ini aman atau berisiko rendah</strong>.</p><Link href="/sumber-data">Lihat ketersediaan sumber<ChevronRight size={15} /></Link></div></section>
-    <section className="context-section"><h3><CloudRain size={19} />Kondisi hujan & cuaca</h3><p>Curah hujan terukur belum tersedia. Prakiraan desa di sekitar bukan pengukuran hujan di titik ini.</p><DataState loading={forecast.isLoading} error={forecast.error} empty={!forecast.data?.data.length} emptyTitle="Belum ada prakiraan desa di sekitar" emptyText="Tidak ada prakiraan yang tersimpan dalam radius 50 km untuk pilihan ini.">{forecast.data?.data.slice(0, 1).map(item => <div className="nearby-weather" key={item.id}><strong>{item.location_name}</strong><p>{item.description} · {date(item.valid_at, true)}</p><p className="small muted">Diterbitkan BMKG {date(item.issued_at, true)}.</p></div>)}</DataState><Link className="text-link" href="/lingkungan">Lihat informasi cuaca<ArrowRight size={15} /></Link></section>
-    <section className="context-section"><h3><MapPin size={19} />Riwayat dalam jarak 50 km</h3><p className="small muted">Maksimal 10 catatan sesuai filter. Riwayat bukan prakiraan kejadian berikutnya.</p><DataState loading={nearby.isLoading} error={nearby.error} empty={!nearby.data?.data.length} emptyTitle="Belum ada catatan di sekitar titik ini" emptyText="Tidak adanya catatan bukan berarti tidak pernah terjadi longsor.">{nearby.data?.data.map(incident => <button className="nearby-item" key={incident.id} onClick={() => selectIncident(incident)}><span><strong>{incident.title}</strong><small>{date(incident.occurred_at)}</small></span><ChevronRight size={17} /></button>)}</DataState></section>
-    <details className="context-section"><summary>Sumber & waktu pembaruan</summary><p>Batas wilayah: geoBoundaries, representasi 2017, bukan batas hukum. Catatan: NASA GLC melalui salinan ArcGIS.</p><p>Impor berhasil terakhir: {date(latestSource?.last_success_at, true)}. Ini waktu pengambilan, bukan waktu kejadian.</p><Link className="text-link" href="/sumber-data">Periksa sumber<ArrowRight size={15} /></Link></details>
+    <SusceptibilityCard zones={location.data?.data.susceptibility} loading={location.isLoading} />
+    <section className="context-section"><h3><CloudRain size={19} />Kondisi hujan & cuaca</h3><p>Prakiraan cuaca desa terdekat dari BMKG untuk membantu kewaspadaan saat hujan berdurasi lama.</p><DataState loading={forecast.isLoading} error={forecast.error} empty={!forecast.data?.data.length} emptyTitle="Belum ada prakiraan desa di sekitar" emptyText="Tidak ada prakiraan yang tersimpan dalam radius 50 km untuk pilihan ini.">{forecast.data?.data.slice(0, 1).map(item => <div className="nearby-weather" key={item.id}><strong>{item.location_name}</strong><p>{item.description} · {item.temperature != null ? `${item.temperature}°C · ` : ''}{date(item.valid_at, true)}</p><p className="small muted">Diterbitkan BMKG {date(item.issued_at, true)}.</p></div>)}</DataState><Link className="text-link" href="/lingkungan">Lihat informasi cuaca<ArrowRight size={15} /></Link></section>
+    <section className="context-section"><h3><MapPin size={19} />Riwayat dalam jarak 50 km</h3><p className="small muted">Maksimal 10 catatan terdekat sesuai filter. Klik catatan untuk membaca detail laporan.</p><DataState loading={nearby.isLoading} error={nearby.error} empty={!nearby.data?.data.length} emptyTitle="Belum ada catatan di sekitar titik ini" emptyText="Tidak adanya catatan bukan berarti tidak pernah terjadi longsor.">{nearby.data?.data.map(incident => <button className="nearby-item" key={incident.id} onClick={() => selectIncident(incident)}><span><strong>{incident.title}</strong><small>{date(incident.occurred_at)} · {incident.verification_status === 'official' ? 'Sumber resmi' : 'Laporan media'}</small></span><ChevronRight size={17} /></button>)}</DataState></section>
+    <details className="context-section"><summary>Sumber & waktu pembaruan</summary><p>Zona Kerawanan: PVMBG Badan Geologi Kementerian ESDM (ZKGT). Catatan kejadian: PVMBG, BNPB, dan NASA GLC. Batas wilayah: geoBoundaries (2017).</p><p>Impor berhasil terakhir: {date(latestSource?.last_success_at, true)}. Ini waktu pengambilan, bukan waktu kejadian.</p><Link className="text-link" href="/sumber-data">Periksa sumber<ArrowRight size={15} /></Link></details>
     <p className="small safety-note">Informasi ini bukan jaminan keselamatan. Ikuti arahan BPBD dan instansi berwenang.</p>
   </>;
   const analytics = <details className="analytics-disclosure"><summary>Ringkasan riwayat & data grafik</summary><p>Jumlah laporan dalam katalog sesuai filter, bukan ukuran bahaya atau seluruh kejadian Indonesia.</p>
@@ -163,36 +232,122 @@ export function Workspace({ view }: { view: string }) {
   return <div className={`public-site ${mapView ? 'map-site' : ''}`}><a href="#main" className="skip-link">Lewati navigasi</a><PublicNavbar view={view} dark={dark} onTheme={changeTheme} />
     <main id="main" className={mapView ? 'map-main' : 'public-main'}>
       {isHome && <>
-        <section className="home-hero"><div className="hero-copy"><h1>Kenali Risiko Longsor di Sekitarmu</h1><p className="hero-description">Jelajahi informasi wilayah rawan longsor, riwayat kejadian, dan kondisi lingkungan di berbagai daerah Indonesia.</p>{searchControl}<div className="hero-actions"><Link className="button button-primary" href="/peta">Cek Lokasi di Peta<ArrowRight size={18} /></Link><Link className="secondary-link" href="/tentang#faktor-longsor">Pelajari Tentang Longsor</Link></div><p className="hero-caveat"><Info size={17} />Peta kerawanan resmi dan prediksi AI belum tersedia. Riwayat kejadian tetap bisa ditelusuri.</p></div><div className="hero-map"><div className="preview-heading"><h2>Peta Longsor Indonesia</h2><Link href="/peta">Buka peta<ArrowRight size={16} /></Link></div>{map}<div className="preview-caption"><span><span className="legend-point" />Riwayat laporan media, bukan peta tingkat bahaya.</span><Link href="/peta">Jelajahi peta Indonesia<ArrowRight size={17} /></Link></div></div></section>
+        <section className="orientation-intro">
+          <div><p className="orientation-kicker">Informasi longsor Indonesia</p><h1>Kenali lereng di sekitar Anda.</h1><p className="orientation-description">Cari lokasi untuk membaca kerentanan wilayah, riwayat longsor, dan cuaca beserta sumbernya.</p></div>
+          <div><p className="orientation-search-label">Wilayah mana yang ingin Anda periksa?</p>{searchControl}</div>
+        </section>
+        <div className="orientation-index"><OrientationMap search={previewProvince || search} /></div>
+        <div className="orientation-summary"><div role="status">{stats.isLoading ? <p>Sedang memuat jumlah catatan…</p> : stats.isError ? <p>Jumlah catatan belum dapat dimuat. {refresh}</p> : <p><strong>{number(data?.total)}</strong> catatan dalam katalog. Bukan seluruh kejadian Indonesia.</p>}</div><Link href="/sumber-data">Periksa sumber & cakupan</Link></div>
         <StartOptions />
-        <section className="content-section"><div className="section-heading"><div><h2>Informasi Kejadian Terbaru</h2><p>Catatan paling akhir dalam katalog historis, bukan laporan langsung hari ini.</p></div><Link className="text-link" href="/kejadian">Semua kejadian<ArrowRight size={18} /></Link></div><DataState loading={latest.isLoading} error={latest.error} empty={!latest.data?.data.length}><div className="incident-grid">{latest.data?.data.map(incident => <IncidentCard key={incident.id} incident={incident} onSelect={selectIncident} compact />)}</div></DataState><ProvenanceNote />{selected && <div ref={detailAnchor} tabIndex={-1} className="detail-anchor"><IncidentDetails incident={selected} onClose={closeIncident} /></div>}</section>
-        {latest.isError && <div className="content-section">{refresh}</div>}<HowItWorks /><EducationalSection /><TrustedSources />
+        <section className="content-section orientation-records"><div className="section-heading"><div><h2>Catatan terbaru dalam katalog</h2><p>Tanggal kejadian menurut sumber, bukan peringatan yang sedang berlangsung.</p></div><Link className="text-link" href="/kejadian">Semua catatan</Link></div><DataState loading={latest.isLoading} error={latest.error} empty={!latest.data?.data.length}><div className="incident-grid">{latest.data?.data.map(incident => <IncidentCard key={incident.id} incident={incident} onSelect={selectIncident} compact />)}</div></DataState><ProvenanceNote />{selected && <div ref={detailAnchor} tabIndex={-1} className="detail-anchor"><IncidentDetails incident={selected} onClose={closeIncident} /></div>}{latest.isError && refresh}</section>
+        <div className="orientation-explainer"><HowItWorks /></div><EducationalSection /><TrustedSources />
       </>}
 
       {mapView && <>
         <h1 className="sr-only">{active.name}</h1>
         <section className="map-stage" aria-label="Jelajahi peta longsor Indonesia">{map}
-          <div className="map-search-overlay">{searchControl}<div className="map-availability"><Info size={17} /><span>Wilayah rawan longsor: <strong>data resmi belum tersedia</strong>.</span><Link href="/sumber-data" aria-label="Mengapa peta kerawanan belum tersedia?">Mengapa?</Link></div></div>
+          <div className="map-search-overlay">
+            {searchControl}
+            <div className="map-quick-layers" role="group" aria-label="Lapisan cepat peta">
+              <button type="button" className={`layer-pill ${showSusceptibility ? 'is-active' : ''}`} aria-pressed={showSusceptibility} onClick={() => setShowSusceptibility(v => !v)}>
+                <Layers size={14} />Kerentanan
+              </button>
+              <button type="button" className={`layer-pill ${showIncidents ? 'is-active' : ''}`} aria-pressed={showIncidents} onClick={() => setShowIncidents(v => !v)}>
+                <MapPin size={14} />Kejadian
+              </button>
+              <button type="button" className={`layer-pill ${basemap === 'topographic' ? 'is-active' : ''}`} aria-pressed={basemap === 'topographic'} onClick={() => changeBasemap(basemap === 'topographic' ? 'streets' : 'topographic')}>
+                <Mountain size={14} />Topografi
+              </button>
+            </div>
+          </div>
           <div className="map-settings-toggle"><Button ref={settingsButton} variant="outline" aria-expanded={settingsOpen} aria-controls="map-settings" onClick={() => setSettingsOpen(value => !value)}><Settings2 size={18} />Pengaturan Peta</Button></div>
-          {settingsOpen && <section className="map-settings" id="map-settings" aria-label="Pengaturan peta"><div className="section-heading"><h2>Pengaturan Peta</h2><Button variant="ghost" size="icon" aria-label="Tutup pengaturan peta" onClick={() => { setSettingsOpen(false); settingsButton.current?.focus(); }}><X size={20} /></Button></div><fieldset className="layer-switcher"><legend>Informasi yang ditampilkan</legend><label><input type="checkbox" checked={showIncidents} onChange={event => setShowIncidents(event.target.checked)} /><span>Riwayat Kejadian<small>NASA GLC, laporan media</small></span></label><label><input type="checkbox" checked={showBoundaries} onChange={event => setShowBoundaries(event.target.checked)} /><span>Batas Wilayah<small>Provinsi, referensi 2017</small></span></label><p><Mountain size={18} />Wilayah Rawan Longsor<span>Belum tersedia</span></p><p><CloudRain size={18} />Curah Hujan<span>Pengamatan belum tersedia</span></p><Link className="text-link" href="/lingkungan">Lihat prakiraan cuaca BMKG<ArrowRight size={16} /></Link></fieldset><label className="control-label">Ketebalan warna penanda<input aria-label="Opasitas kejadian" type="range" min="0.1" max="1" step="0.05" value={opacity} onChange={event => setOpacity(Number(event.target.value))} /></label><label className="control-label">Peta dasar<select aria-label="Pilih peta dasar" value={basemap} onChange={event => changeBasemap(event.target.value)}><option value="streets">OpenStreetMap</option><option value="topographic">OpenTopoMap</option></select></label><details><summary>Saring riwayat kejadian</summary>{filtersControl}</details><div className="settings-actions">{refresh}<Button variant="outline" disabled={!incidents.data?.data.length || invalidDates} onClick={exportRecords}><Download size={16} />Ekspor GeoJSON</Button></div><p className="small muted">Ekspor hanya catatan dalam tampilan peta saat ini.</p><Link className="text-link" href="/pengaturan">Pengaturan tampilan<ChevronRight size={15} /></Link></section>}
-          {(point || selected) ? <LocationBottomSheet key={selected?.id || 'location'} title={selected ? 'Detail kejadian' : 'Informasi Longsor di Lokasi Ini'} onClose={() => { setSelected(null); setPoint(null); setTarget(null); }}>{selected ? <><IncidentDetails incident={selected} onClose={() => setSelected(null)} />{riskInformation}</> : riskInformation}</LocationBottomSheet> : <div className="map-first-hint"><MapPin size={21} /><p><strong>Ingin tahu tentang suatu tempat?</strong><span>Cari provinsi atau ketuk peta untuk melihat riwayat di sekitarnya.</span></p><Link href="/kejadian">Baca tanpa peta<ChevronRight size={16} /></Link></div>}
+          {settingsOpen && <section className="map-settings" id="map-settings" aria-label="Pengaturan peta"><div className="section-heading"><h2>Pengaturan Peta</h2><Button variant="ghost" size="icon" aria-label="Tutup pengaturan peta" onClick={() => { setSettingsOpen(false); settingsButton.current?.focus(); }}><X size={20} /></Button></div><fieldset className="layer-switcher"><legend>Informasi yang ditampilkan</legend><label><input type="checkbox" checked={showSusceptibility} onChange={event => setShowSusceptibility(event.target.checked)} /><span>Wilayah Rawan Longsor<small>Zona Kerentanan Gerakan Tanah PVMBG</small></span></label><label><input type="checkbox" checked={showIncidents} onChange={event => setShowIncidents(event.target.checked)} /><span>Riwayat Kejadian<small>PVMBG, BNPB & NASA GLC</small></span></label><label><input type="checkbox" checked={showBoundaries} onChange={event => setShowBoundaries(event.target.checked)} /><span>Batas Wilayah<small>Provinsi, referensi 2017</small></span></label><p><CloudRain size={18} />Curah Hujan<span>Pengamatan belum tersedia</span></p><Link className="text-link" href="/lingkungan">Lihat prakiraan cuaca BMKG<ArrowRight size={16} /></Link></fieldset><label className="control-label">Ketebalan warna penanda<input aria-label="Opasitas kejadian" type="range" min="0.1" max="1" step="0.05" value={opacity} onChange={event => setOpacity(Number(event.target.value))} /></label><label className="control-label">Peta dasar<select aria-label="Pilih peta dasar" value={basemap} onChange={event => changeBasemap(event.target.value)}><option value="streets">OpenStreetMap</option><option value="topographic">OpenTopoMap</option></select></label><details><summary>Saring riwayat kejadian</summary>{filtersControl}</details><div className="settings-actions">{refresh}<Button variant="outline" disabled={!incidents.data?.data.length || invalidDates} onClick={exportRecords}><Download size={16} />Ekspor GeoJSON</Button></div><p className="small muted">Ekspor hanya catatan dalam tampilan peta saat ini.</p><Link className="text-link" href="/pengaturan">Pengaturan tampilan<ChevronRight size={15} /></Link></section>}
+          {(point || selected) && <LocationBottomSheet key={selected?.id || 'location'} title={selected ? 'Detail kejadian' : 'Informasi Longsor di Lokasi Ini'} onClose={() => { setSelected(null); setSelectedPlace(null); setPoint(null); setTarget(null); }}>{selected ? <><IncidentDetails incident={selected} onClose={() => setSelected(null)} />{riskInformation}</> : riskInformation}</LocationBottomSheet>}
+          {linkedPlace.isError && <p className="map-error" role="alert">Wilayah dari tautan belum dapat dimuat. Cari kembali melalui kolom pencarian.</p>}
+          {linkedPlace.data && !linkedPlace.data.data.length && <p className="map-error" role="status">Wilayah dari tautan tidak ditemukan. Cari kembali melalui kolom pencarian.</p>}
           {incidents.isError && <div className="map-error" role="alert">Riwayat belum bisa dimuat. {refresh}<Link href="/kejadian">Buka daftar kejadian</Link></div>}
           {linked.isError && <p className="map-error" role="alert">Detail tautan ini belum bisa dimuat. Coba pilih lokasi di peta.</p>}
-        </section><div className="map-below"><ProvenanceNote /><p className="small muted">{incidents.isLoading ? 'Sedang memuat riwayat…' : incidents.isError ? 'Riwayat belum tersedia.' : `${number(incidents.data?.data.length)} catatan dalam tampilan`}{incidents.data?.meta.has_more ? '. Perbesar peta untuk melihat catatan lain.' : ''}</p>{analytics}<details><summary>Informasi koordinat peta</summary><p>Koordinat memakai WGS 84 (EPSG:4326). Titik kejadian mengikuti ketelitian katalog, bukan hasil pemeriksaan lapangan.</p></details></div>
+        </section>
+        <div className="map-below">
+          <p className="map-instructions">Arahkan kursor ke titik untuk melihat ringkasan, klik untuk membaca detail. <Link href="/kejadian">Baca daftar tanpa peta</Link>.</p>
+          <details className="map-availability">
+            <summary>Kerentanan PVMBG, bukan prediksi</summary>
+            <p>Pemetaan regional tidak menentukan kapan longsor terjadi. Pilih titik untuk memeriksa kelas, sumber, dan cakupan lokasi.</p>
+            <Link href="/sumber-data" aria-label="Rincian sumber peta kerawanan">Rincian sumber</Link>
+          </details>
+          <section className="zkgt-guide-banner" aria-label="Panduan Zona Kerentanan Gerakan Tanah PVMBG">
+            <div className="zkgt-guide-head">
+              <div>
+                <h2>Memahami Zona Kerentanan Gerakan Tanah (PVMBG)</h2>
+                <p>Peta di atas menampilkan klasifikasi kerentanan gerakan tanah resmi dari Badan Geologi Kementerian ESDM (PVMBG). Pilih provinsi rawan berikut untuk langsung memeriksa petanya:</p>
+              </div>
+              <div className="zkgt-province-jumps">
+                {['Jawa Barat', 'Jawa Tengah', 'Jawa Timur', 'Sumatera Barat', 'Sulawesi Selatan', 'Banten'].map(prov => (
+                  <button key={prov} type="button" className={`quick-chip ${province === prov ? 'is-selected' : ''}`} onClick={() => selectProvince(prov)}>
+                    <MapPin size={13} />{prov}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="zkgt-class-grid">
+              <article className="zkgt-class-card zkgt-high">
+                <span className="zkgt-dot" />
+                <div>
+                  <h3>Zona Kerentanan Tinggi</h3>
+                  <p>Sering mengalami gerakan tanah lama maupun baru, terutama pada lereng terjal saat curah hujan tinggi.</p>
+                </div>
+              </article>
+              <article className="zkgt-class-card zkgt-med">
+                <span className="zkgt-dot" />
+                <div>
+                  <h3>Zona Kerentanan Menengah</h3>
+                  <p>Dapat terjadi gerakan tanah terutama pada tebing jalan, gawir, lembah sungai, atau lereng yang terganggu.</p>
+                </div>
+              </article>
+              <article className="zkgt-class-card zkgt-low">
+                <span className="zkgt-dot" />
+                <div>
+                  <h3>Zona Kerentanan Rendah</h3>
+                  <p>Jarang terjadi gerakan tanah bila lereng tidak mengalami gangguan dan kondisi drainase terjaga.</p>
+                </div>
+              </article>
+              <article className="zkgt-class-card zkgt-vlow">
+                <span className="zkgt-dot" />
+                <div>
+                  <h3>Zona Sangat Rendah</h3>
+                  <p>Wilayah dataran atau lereng landai yang hampir tidak pernah mengalami gerakan tanah.</p>
+                </div>
+              </article>
+            </div>
+          </section>
+          <ProvenanceNote />
+          <p className="small muted">{incidents.isLoading ? 'Sedang memuat riwayat…' : incidents.isError ? 'Riwayat belum tersedia.' : `${number(incidents.data?.data.length)} catatan dalam tampilan`}{incidents.data?.meta.has_more ? '. Perbesar peta untuk melihat catatan lain.' : ''}</p>
+          {analytics}
+          <details><summary>Informasi koordinat peta</summary><p>Koordinat memakai WGS 84 (EPSG:4326). Titik kejadian mengikuti ketelitian katalog, bukan hasil pemeriksaan lapangan.</p></details>
+        </div>
       </>}
 
-      {!isHome && !mapView && <div className="page-container"><div className="page-heading"><div><h1>{active.name}</h1><p>{({ kejadian: 'Kenali riwayatnya. Baca ceritanya, lalu periksa sumbernya.', lingkungan: 'Pahami prakiraan cuaca dan informasi lingkungan yang tersedia.', 'prediksi-ai': 'Memahami apa yang sedang dikembangkan, tanpa menganggapnya sebagai peringatan resmi.', 'sumber-data': 'Informasi yang berguna harus jelas asal dan keterbatasannya.', pengaturan: 'Buat tampilan LERENG lebih nyaman untuk Anda.', tentang: 'Membantu siapa pun mengenali wilayahnya dan memahami informasi longsor.' } as Record<string, string>)[view]}</p></div>{refresh}</div>
+      {!isHome && !mapView && <div className="page-container"><div className="page-heading"><div><h1>{active.name}</h1><p>{({ kejadian: 'Riwayat dalam katalog, beserta sumber dan ketelitian lokasinya.', lingkungan: 'Pahami prakiraan cuaca dan informasi lingkungan yang tersedia.', 'prediksi-ai': 'Memahami apa yang sedang dikembangkan, tanpa menganggapnya sebagai peringatan resmi.', 'sumber-data': 'Informasi yang berguna harus jelas asal dan keterbatasannya.', pengaturan: 'Buat tampilan LERENG lebih nyaman untuk Anda.', tentang: 'Membantu siapa pun mengenali wilayahnya dan memahami informasi longsor.' } as Record<string, string>)[view]}</p></div>{refresh}</div>
         {view === 'kejadian' && <>
-          <div className="incident-tools"><label className="list-search"><Search size={20} /><input aria-label="Cari catatan kejadian" placeholder="Cari judul atau isi laporan…" value={query} onChange={event => { setQuery(event.target.value); setOffset(0); }} /></label><details className="filter-disclosure"><summary>Saring wilayah & tanggal</summary>{filtersControl}</details></div><ProvenanceNote /><div className="results-heading"><p>{invalidDates ? 'Periksa rentang tanggal terlebih dahulu.' : incidentList.isLoading ? 'Sedang mencari catatan…' : incidentList.isError ? 'Catatan belum bisa dimuat.' : `${number(incidentList.data?.meta.total)} catatan sesuai pilihan`}</p><Button variant="outline" disabled={!incidentList.data?.data.length || invalidDates} onClick={exportRecords}><Download size={16} />Ekspor GeoJSON</Button></div><p className="small muted">Urutan berdasarkan tanggal kejadian terbaru dalam katalog. Ekspor mencakup halaman yang sedang dimuat.</p>
+          <div className="incident-tools"><label className="list-search"><Search size={20} /><input aria-label="Cari catatan kejadian" placeholder="Cari wilayah atau isi laporan" value={query} onChange={event => { setQuery(event.target.value); setOffset(0); }} /></label><details className="filter-disclosure"><summary>Saring wilayah & tanggal</summary>{filtersControl}
+          <div className="quick-filter-bar" aria-label="Filter cepat kejadian">
+            <button type="button" className={`quick-chip ${!status && !province ? 'is-selected' : ''}`} onClick={clearFilters}>Semua ({number(data?.total)})</button>
+            <button type="button" className={`quick-chip ${status === 'official' ? 'is-selected' : ''}`} onClick={() => { setStatus(status === 'official' ? '' : 'official'); setOffset(0); }}>Sumber Resmi PVMBG & BNPB</button>
+            <button type="button" className={`quick-chip ${status === 'media_reported' ? 'is-selected' : ''}`} onClick={() => { setStatus(status === 'media_reported' ? '' : 'media_reported'); setOffset(0); }}>Laporan Media (NASA GLC)</button>
+            {['Jawa Barat', 'Jawa Tengah', 'Jawa Timur', 'Sumatera Barat', 'Sulawesi Selatan'].map(prov => (
+              <button key={prov} type="button" className={`quick-chip ${province === prov ? 'is-selected' : ''}`} onClick={() => selectProvince(province === prov ? '' : prov)}>{prov}</button>
+            ))}
+          </div></details></div>
+          <ProvenanceNote compact /><div className="results-heading"><p>{invalidDates ? 'Periksa rentang tanggal terlebih dahulu.' : incidentList.isLoading ? 'Sedang mencari catatan…' : incidentList.isError ? 'Catatan belum bisa dimuat.' : `${number(incidentList.data?.meta.total)} catatan sesuai pilihan`}</p><Button variant="outline" disabled={!incidentList.data?.data.length || invalidDates} onClick={exportRecords}><Download size={16} />Ekspor GeoJSON</Button></div><p className="small muted">Urutan berdasarkan tanggal kejadian terbaru dalam katalog. Ekspor mencakup halaman yang sedang dimuat.</p>
           {!invalidDates && <DataState loading={incidentList.isLoading} error={incidentList.error} empty={!incidentList.data?.data.length}><div className="incident-grid incident-results">{incidentList.data?.data.map(incident => <IncidentCard key={incident.id} incident={incident} onSelect={selectIncident} />)}</div></DataState>}
           <nav className="pagination" aria-label="Halaman riwayat"><Button variant="outline" disabled={offset === 0 || invalidDates} onClick={() => setOffset(value => Math.max(0, value - 25))}>Sebelumnya</Button><span>Halaman {Math.floor(offset / 25) + 1}</span><Button variant="outline" disabled={!incidentList.data?.meta.has_more || invalidDates || incidentList.isError} onClick={() => setOffset(value => value + 25)}>Berikutnya</Button></nav>
           {selected && <div ref={detailAnchor} tabIndex={-1} className="detail-anchor"><IncidentDetails incident={selected} onClose={closeIncident} /></div>}{analytics}
         </>}
 
         {view === 'lingkungan' && <>
-          <div className="notice"><CloudRain size={25} /><div><h2>Prakiraan cuaca bukan pengamatan hujan</h2><p>BMKG menyediakan prakiraan untuk desa yang telah diambil datanya oleh LERENG. Hujan lebat tidak otomatis berarti longsor. Cakupan belum seluruh Indonesia.</p></div></div><details className="filter-disclosure"><summary>Pilih wilayah & waktu</summary>{filtersControl}</details>
+          <div className="notice"><CloudRain size={25} /><div><h2>Prakiraan cuaca bukan pengamatan hujan</h2><p>BMKG menyediakan prakiraan untuk desa yang telah diambil datanya oleh LERENG. Hujan lebat tidak otomatis berarti longsor, namun pada wilayah dengan <strong>Zona Kerentanan Gerakan Tanah Menengah hingga Tinggi</strong>, hujan berdurasi panjang meningkatkan risiko gerakan tanah.</p></div></div><details className="filter-disclosure"><summary>Pilih wilayah & waktu</summary>{filtersControl}</details>
           <section className="content-section"><div className="section-heading"><h2>Prakiraan cuaca desa</h2><a className="text-link" href="https://data.bmkg.go.id/prakiraan-cuaca/" target="_blank" rel="noreferrer">Sumber BMKG<ExternalLink size={16} /></a></div><DataState loading={forecast.isLoading} error={forecast.error} empty={!forecast.data?.data.length} emptyTitle="Belum ada prakiraan yang sesuai" emptyText="Prakiraan tersimpan mungkin sudah melewati waktu berlaku, atau desa yang dipilih belum tercakup. Coba muat ulang atau buka BMKG."><div className="weather-grid">{forecast.data?.data.map(item => <article className="weather-card" key={item.id}><CloudRain size={25} /><h3>{item.location_name}</h3><time dateTime={item.valid_at}>{date(item.valid_at, true)}</time><strong className="weather-description">{item.description}</strong><p>{item.temperature == null ? 'Suhu belum diketahui' : `${item.temperature} °C`} · {item.humidity == null ? 'Kelembapan belum diketahui' : `Kelembapan ${item.humidity}%`}</p><details><summary>Waktu penerbitan & pengambilan</summary><p>Diterbitkan: {date(item.issued_at, true)}.</p><p>Diambil: {date(item.retrieved_at, true)}.</p></details></article>)}</div></DataState></section>
-          <section className="content-section"><div className="section-heading"><h2>Peringatan cuaca yang masih berlaku</h2><DataStatus value="official" /></div><DataState loading={warnings.isLoading} error={warnings.error} empty={!warnings.data?.data.length} emptyTitle="Tidak ada peringatan aktif dalam data tersimpan" emptyText="Ini bukan jaminan tidak ada peringatan di wilayah Anda. Selalu periksa pembaruan BMKG.">{warnings.data?.data.map(item => <article className="warning-item" key={item.id}><h3>{item.title}</h3><p>{item.description}</p><p className="small muted">Berlaku sampai {date(item.expires_at, true)}. Diambil {date(item.retrieved_at, true)}.</p><a className="text-link" href={item.source_url} target="_blank" rel="noreferrer">Baca peringatan BMKG<ExternalLink size={16} /></a></article>)}</DataState></section><section className="notice"><Mountain size={26} /><div><h2>Bagaimana kondisi tanah dan lereng?</h2><p>Data elevasi, kemiringan lereng, geologi, tutupan lahan dan hujan terukur belum tersedia untuk analisis lokasi. Peta topografi dasar bukan pengganti penilaian lapangan.</p><Link className="text-link" href="/tentang#faktor-longsor">Kenali faktor penyebab longsor<ArrowRight size={16} /></Link></div></section>
+          <section className="content-section"><div className="section-heading"><h2>Peringatan cuaca yang masih berlaku</h2><DataStatus value="official" /></div><DataState loading={warnings.isLoading} error={warnings.error} empty={!warnings.data?.data.length} emptyTitle="Tidak ada peringatan aktif dalam data tersimpan" emptyText="Ini bukan jaminan tidak ada peringatan di wilayah Anda. Selalu periksa pembaruan BMKG.">{warnings.data?.data.map(item => <article className="warning-item" key={item.id}><h3>{item.title}</h3><p>{item.description}</p><p className="small muted">Berlaku sampai {date(item.expires_at, true)}. Diambil {date(item.retrieved_at, true)}.</p><a className="text-link" href={item.source_url} target="_blank" rel="noreferrer">Baca peringatan BMKG<ExternalLink size={16} /></a></article>)}</DataState></section><section className="notice"><Mountain size={26} /><div><h2>Bagaimana kondisi tanah dan lereng?</h2><p>Peta <strong>Zona Kerentanan Gerakan Tanah (ZKGT) PVMBG</strong> sudah dapat diperiksa pada halaman Peta. Untuk penilaian kemiringan lereng tapak secara rinci tetap diperlukan penyelidikan geoteknik lapangan.</p><Link className="text-link" href="/kerawanan">Buka Peta Zona Kerawanan PVMBG<ArrowRight size={16} /></Link></div></section>
         </>}
 
         {view === 'prediksi-ai' && <>
@@ -208,7 +363,7 @@ export function Workspace({ view }: { view: string }) {
 
         {view === 'pengaturan' && <section className="settings-panel"><div className="setting-row"><div><h2>Tema tampilan</h2><p>Pilih tampilan yang nyaman. Preferensi disimpan di peramban ini.</p></div><Button variant="outline" onClick={changeTheme}>Gunakan tema {dark ? 'terang' : 'gelap'}</Button></div><div className="setting-row"><div><h2>Peta dasar</h2><p>Pilihan ini juga digunakan ketika Anda kembali ke peta.</p></div><select aria-label="Peta dasar pengaturan" value={basemap} onChange={event => changeBasemap(event.target.value)}><option value="streets">OpenStreetMap</option><option value="topographic">OpenTopoMap</option></select></div><div className="setting-row"><div><h2>Privasi lokasi</h2><p>LERENG hanya meminta izin lokasi ketika Anda menekan Lokasi saya. Lokasi tidak disimpan sebagai profil pengguna.</p></div><ShieldCheck size={26} /></div><details><summary>Konfigurasi teknis layanan</summary><p>Koneksi basis data dan layanan AI diatur oleh pengelola melalui variabel lingkungan. Pengaturan ini tidak dapat diubah lewat peramban.</p></details><Link className="button button-primary" href="/peta">Kembali ke peta<ArrowRight size={17} /></Link></section>}
 
-        {view === 'tentang' && <><section className="about-intro"><p className="large-copy">Mengenali suatu tempat dimulai dari informasi yang bisa dipahami, bukan dari banyaknya angka di layar.</p><div><p>LERENG adalah situs informasi longsor Indonesia. Anda dapat menelusuri riwayat kejadian, melihat informasi lingkungan yang tersedia, dan mengetahui dari mana data berasal.</p><p>LERENG bukan layanan peringatan dini resmi. Informasi kerawanan resmi dan prediksi AI belum tersedia. Data yang belum ada tidak diartikan sebagai kondisi aman.</p><Link className="button button-primary" href="/peta">Cek Lokasi di Peta<ArrowRight size={17} /></Link></div></section><HowItWorks /><section className="content-section distinctions"><h2>Tiga informasi yang berbeda</h2><dl><div><dt>Kerawanan wilayah</dt><dd>Kondisi jangka panjang yang membuat lereng lebih rentan. Memerlukan peta dan penilaian yang dapat dipertanggungjawabkan; belum tersedia di LERENG.</dd></div><div><dt>Riwayat kejadian</dt><dd>Laporan tentang longsor yang telah terjadi. Catatan dapat tidak lengkap dan titiknya dapat berupa perkiraan.</dd></div><div><dt>Prakiraan & peringatan cuaca</dt><dd>Informasi cuaca untuk waktu tertentu. Bukan prediksi atau peringatan longsor di lokasi Anda.</dd></div></dl></section><EducationalSection /><TrustedSources /><section className="safety-section"><ShieldCheck size={30} /><div><h2>Utamakan arahan setempat</h2><p>Untuk keputusan keselamatan, ikuti BPBD dan instansi berwenang. Jangan memakai ketiadaan titik kejadian atau data kerawanan sebagai satu-satunya alasan untuk menyimpulkan suatu tempat aman.</p><a className="text-link" href="https://www.bnpb.go.id/" target="_blank" rel="noreferrer">Kunjungi BNPB<ExternalLink size={16} /></a></div></section></>}
+        {view === 'tentang' && <><section className="about-intro"><p className="large-copy">Mengenali suatu tempat dimulai dari informasi yang bisa dipahami, bukan dari banyaknya angka di layar.</p><div><p>LERENG adalah situs informasi longsor Indonesia. Anda dapat memeriksa peta Zona Kerentanan Gerakan Tanah resmi PVMBG, menelusuri ribuan riwayat kejadian, melihat informasi lingkungan yang tersedia, dan mengetahui dari mana data berasal.</p><p>LERENG bukan layanan peringatan dini resmi. Prediksi AI belum tersedia. Data yang belum ada tidak diartikan sebagai kondisi aman.</p><Link className="button button-primary" href="/peta">Cek Lokasi di Peta<ArrowRight size={17} /></Link></div></section><HowItWorks /><section className="content-section distinctions"><h2>Tiga informasi yang berbeda</h2><dl><div><dt>Kerawanan wilayah (PVMBG)</dt><dd>Kondisi jangka panjang yang membuat lereng lebih rentan terhadap gerakan tanah (Tinggi, Menengah, Rendah, Sangat Rendah) berdasarkan peta Zona Kerentanan Gerakan Tanah PVMBG Badan Geologi ESDM.</dd></div><div><dt>Riwayat kejadian</dt><dd>Laporan tentang longsor yang telah terjadi dari penyelidikan PVMBG, catatan BNPB, dan katalog NASA GLC. Catatan dapat tidak lengkap dan titiknya dapat berupa perkiraan.</dd></div><div><dt>Prakiraan & peringatan cuaca</dt><dd>Informasi cuaca BMKG untuk waktu tertentu. Bukan prediksi atau peringatan longsor langsung di lokasi Anda.</dd></div></dl></section><EducationalSection /><TrustedSources /><section className="safety-section"><ShieldCheck size={30} /><div><h2>Utamakan arahan setempat</h2><p>Untuk keputusan keselamatan, ikuti BPBD dan instansi berwenang. Jangan memakai ketiadaan titik kejadian sebagai satu-satunya alasan untuk menyimpulkan suatu tempat aman.</p><a className="text-link" href="https://www.bnpb.go.id/" target="_blank" rel="noreferrer">Kunjungi BNPB<ExternalLink size={16} /></a></div></section></>}
       </div>}
     </main><PublicFooter />
   </div>;

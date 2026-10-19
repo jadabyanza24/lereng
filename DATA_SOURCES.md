@@ -39,6 +39,19 @@ Diperiksa langsung pada **19 Oktober 2026**. Waktu pemeriksaan endpoint bukan wa
 - https://www.openstreetmap.org/copyright dan https://www.geoboundaries.org/
 - Cek bulanan; bukan batas hukum, tidak mencakup pemekaran provinsi terbaru. ADM2 belum diimpor. Metadata sumber disertakan pada setiap region dan `public/geodata/metadata.json`.
 
+### PVMBG / Badan Geologi Kementerian ESDM: Zona Kerentanan Gerakan Tanah (ZKGT), tanggapan darurat, penyelidikan lapangan, SIGAB & MAGMA (resmi)
+
+- **Zona Kerentanan Gerakan Tanah (ZKGT)**: Layanan WMS & GeoServer `GetFeatureInfo` resmi Portal Mitigasi Bencana Geologi (`https://vsi.esdm.go.id/data/api/public/geohazard/map-layer/wms`, layer `pmbgi:zkgt_indonesia`, kode sumber `pvmbg`) serta koridor kerentanan regional dari titik penyelidikan lapangan PVMBG. Menampilkan klasifikasi resmi (`Zona Kerentanan Tinggi`, `Zona Kerentanan Menengah`, `Zona Kerentanan Rendah`, `Zona Kerentanan Sangat Rendah`) beserta penjelasan geologi sumber.
+- Tanggapan Kejadian Gerakan Tanah Terkini (2023–2026): `https://vsi.esdm.go.id/tanggapan-kejadian/apis/get` dan halaman detail `https://vsi.esdm.go.id/tanggapan-kejadian/{route}` (`pvmbg-tanggapan`).
+- Katalog Penyelidikan Lapangan Gerakan Tanah & SIGAB (2008–2025): `https://vsi.esdm.go.id/portalmbg/api/get-field-reports` dan `https://vsi.esdm.go.id/portalmbg/api/sigab` (`pvmbg-penyelidikan`).
+- Laporan Singkat Tanggapan Gerakan Tanah MAGMA Indonesia (2015–2023): `https://magma.esdm.go.id/v1/gerakan-tanah/tanggapan` (`pvmbg-magma`).
+- Atribusi PVMBG / Badan Geologi Kementerian ESDM dan tautan sumber dipertahankan. Koordinat diekstrak dari atribut geospasial atau teks laporan penyelidikan resmi dan divalidasi dalam batas Indonesia (`[94..142, -12..7]`); laporan tanpa koordinat eksplisit tetap disimpan tanpa titik geometri (`geom = NULL`).
+
+### BNPB: ringkasan rilis resmi & layanan GIS BNPB (resmi)
+
+- Ringkasan fakta rilis resmi BNPB (2025–2026): `https://www.bnpb.go.id/berita` yang dikurasi pada `db/reviewed-releases.json` (`bnpb-releases`) dengan pemisahan ketat `occurred_on`, `published_at`, dan `reviewed_at` tanpa mengarang koordinat.
+- Layanan ArcGIS REST GIS BNPB: `https://gis.bnpb.go.id/server/rest/services` (`Hosted/Join_Data_Harian_New/FeatureServer/8` dan `MV_Bansor_Sumatera_v4/MapServer/0`, `bnpb`).
+
 ### Peta dasar
 
 - OpenStreetMap: https://tile.openstreetmap.org/{z}/{x}/{y}.png, ODbL untuk data, kebijakan tile https://operations.osmfoundation.org/policies/tiles/. Jangan bulk download atau prefetch. Atribusi tetap terlihat.
@@ -49,9 +62,7 @@ Diperiksa langsung pada **19 Oktober 2026**. Waktu pemeriksaan endpoint bukan wa
 
 | Instansi/sumber | Akses diperiksa | Hasil/kendala | Lisensi dan tindakan |
 |---|---|---|---|
-| BNPB GIS | https://gis.bnpb.go.id/arcgis/rest/services?f=pjson | HTTP 500 | Izin redistribusi/endpoint layer historis belum terverifikasi; tidak ada ingest data BNPB |
-| BNPB RSS | https://bnpb.go.id/berita/rss | HTTP 403 | Tidak melewati blokir; tidak scrape halaman sebagai pengganti |
-| MAGMA/PVMBG | https://magma.esdm.go.id/ dan tautan gerakan tanah aktual | Portal publik tersedia | Belum ada WMS/WFS/download susceptibility berlisensi terverifikasi; lapisan dinonaktifkan |
+| BNPB RSS | https://bnpb.go.id/berita/rss | HTTP 403 | Tidak melewati blokir; kurasi rilis resmi dilakukan melalui `bnpb-releases` |
 | BIG | https://tanahair.indonesia.go.id/ -> /portal-web/ | Portal ditemukan | Perlu endpoint dan lisensi per dataset batas/DEM; belum ada ingest |
 | Pengamatan hujan BMKG | Dokumentasi prakiraan tersedia, pengamatan terpisah belum ditemukan | Tidak terintegrasi | Jangan menamai prakiraan sebagai observasi |
 | Geologi, tanah, tutupan lahan, DEM | Tidak ada dataset per-piksel terverifikasi diimpor | Belum tersedia | Metodologi harmonisasi siap, tidak ada fitur dihitung tanpa input |
@@ -63,3 +74,14 @@ Adaptor RSS metadata tersedia tetapi **tidak ada penerbit otomatis aktif**. Oper
 ## Bukti ingest dan kesegaran
 
 Jalankan `SELECT source_id,status,record_count,started_at,finished_at,error FROM ingestion_runs ORDER BY id;`. Hanya keberhasilan adaptor mengubah `last_success_at`. Endpoint `/api/sources` memberi last_attempt_at, last_success_at, status dan freshness turunan. HTTP 200 tanpa validasi struktur bukan keberhasilan. `not_ingested` berbeda dari `unavailable`, dan data usang tetap disimpan dengan penandaan kesegaran.
+# Indeks pencarian kabupaten/kota
+
+Pencarian `/api/places` memakai indeks lokal `src/server/places.json`: 34 provinsi dari referensi ADM1 yang sudah tersedia (2017), ditambah 519 unit ADM2 dari snapshot geoBoundaries IDN 2020. Ini bukan klaim jumlah kabupaten/kota terkini.
+
+- ADM2: BPS, World Food Programme, OCHA ROAP melalui geoBoundaries gbOpen, boundary ID `IDN-ADM2-22746128`.
+- Lisensi ADM2: **CC BY 3.0 IGO**. Sumber: https://data.humdata.org/dataset/indonesia-administrative-boundary-polygons-lines-and-places-levels-0-4b.
+- Geometri versi tetap: https://media.githubusercontent.com/media/wmgeolab/geoBoundaries/9469f09/releaseData/gbOpen/IDN/ADM2/geoBoundaries-IDN-ADM2_simplified.geojson.
+- URL, hash SHA-256 dan keterbatasan tercatat di `public/geodata/place-metadata.json`.
+- Bangun ulang: `npx tsx scripts/build-places.ts [file-geojson]`. Memerlukan PostGIS dan referensi ADM1 yang sudah diimpor; proses hanya membaca database. Hash sumber diverifikasi sebelum membuat indeks.
+- Titik representatif memakai `ST_PointOnSurface`, bukan koordinat peristiwa. Pemilihan wilayah memperbesar bounding box; prakiraan/riwayat/kerentanan sekitar titik tidak mewakili seluruh wilayah. Provinsi induk mengikuti batas referensi 2017 terdekat, bukan pemekaran terbaru.
+- Layanan tidak mengirim teks pencarian ke penyedia geocoding eksternal. Alamat jalan dan pencarian kecamatan/desa belum didukung.
